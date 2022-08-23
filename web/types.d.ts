@@ -14,7 +14,6 @@ export type Post = {
 
 export interface DropdownProps {
   postId: number,
-  handleResetCreatePostState: () => void,
   refreshData: () => void
   post?: Post,
 }

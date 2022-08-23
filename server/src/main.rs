@@ -13,7 +13,7 @@ pub mod db;
 pub mod error_handler;
 pub mod posts;
 pub mod schema;
-mod users;
+pub mod users;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

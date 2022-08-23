@@ -1,11 +1,11 @@
 use crate::error_handler::CustomError;
-use crate::posts::model::{NewPost, Post};
+use crate::posts::model::{NewPost, Post, PostsRequestBody};
 use actix_web::{delete, get, post, put, web, HttpResponse};
 use serde_json::json;
 
 #[post("/posts")]
-async fn create(new_post: web::Json<NewPost>) -> Result<HttpResponse, CustomError> {
-    let post = Post::create(new_post.into_inner())?;
+async fn create(req_body: web::Json<PostsRequestBody>) -> Result<HttpResponse, CustomError> {
+    let post = Post::create(req_body.into_inner())?;
 
     Ok(HttpResponse::Ok().json(post))
 }
@@ -23,9 +23,9 @@ async fn get_all() -> Result<HttpResponse, CustomError> {
 #[put("/posts/{id}")]
 async fn update(
     id: web::Path<i32>,
-    new_post: web::Json<NewPost>,
+    req_body: web::Json<PostsRequestBody>,
 ) -> Result<HttpResponse, CustomError> {
-    let updated_post = Post::update(id.into_inner(), new_post.into_inner())?;
+    let updated_post = Post::update(id.into_inner(), req_body.into_inner())?;
 
     Ok(HttpResponse::Ok().json(updated_post))
 }

@@ -1,13 +1,13 @@
-import { Button, Group, Modal, Textarea } from '@mantine/core';
+import { Button, Group, Modal, Space, Stack, Textarea } from '@mantine/core';
 
-import { ErrorMessage, Form, Formik } from 'formik';
+import { Form, Formik } from 'formik';
 import { useRecoilState } from 'recoil';
 import { editModalAtom } from '../atoms/editModalAtom';
 import { DropdownProps } from '../types';
 import UpdatePostRequest from '../utils/UpdatePostRequest';
 
 
-const EditPostModal = ({ postId, refreshData, post, handleResetCreatePostState }: DropdownProps) => {
+const EditPostModal = ({ postId, refreshData, post }: DropdownProps) => {
 
 
 
@@ -67,37 +67,34 @@ const EditPostModal = ({ postId, refreshData, post, handleResetCreatePostState }
                 >{({ isSubmitting, errors, values, handleChange }) => (
 
 
+                    <Stack spacing={'xl'}>
+                        <Form >
 
-                    <Form className='flex flex-col gap-3'>
-
-                        <Textarea className='text-2xl h-10' value={values.title} onChange={handleChange} label="Title" id='title' name='title' error={!!errors.title} />
-                        <ErrorMessage component='a' className='text-red-500' name='title' />
-
-                        <Textarea value={values.body} onChange={handleChange} label="Body" id='body' name='body' error={!!errors.body} />
-                        <ErrorMessage
-                            component='b'
-                            className='text-red-500'
-                            name='body'
-                        />
-
-                        <Group>
-                            <Button
-
-                                color="red"
-                                onClick={() => setEditModalOpen(false)}
-                                className="mr-1"
-                            >
-                                <span>Cancel</span>
-                            </Button>
-                            {isSubmitting ? <Button disabled>
-                                <span>Update</span>
-                            </Button> : <Button type='submit' color="cyan" >
-                                <span>Update</span>
-                            </Button>}
+                            <Textarea value={values.title} onChange={handleChange} label="Title" id='title' name='title' error={errors.title} />
 
 
-                        </Group>
-                    </Form>
+                            <Textarea value={values.body} onChange={handleChange} label="Body" id='body' name='body' error={errors.body} />
+
+                            <Space h='md' />
+                            <Group position='right'>
+                                <Button
+
+                                    color="red"
+                                    onClick={() => setEditModalOpen(false)}
+
+                                >
+                                    <span>Cancel</span>
+                                </Button>
+                                {isSubmitting ? <Button disabled>
+                                    <span>Update</span>
+                                </Button> : <Button type='submit' color="cyan" >
+                                    <span>Update</span>
+                                </Button>}
+
+
+                            </Group>
+                        </Form>
+                    </Stack>
 
                 )}
 

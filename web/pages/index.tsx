@@ -2,8 +2,8 @@ import { Button, Group, Modal } from '@mantine/core';
 import { InferGetStaticPropsType } from 'next';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import CreatePostForm from '../components/CreatePostForm';
-import DeleteModal from '../components/DeleteModal';
+import CreatePostForm from '../components/CreatePost';
+import DeleteModal from '../components/DeletePostModal';
 import { Posts } from '../types';
 
 
@@ -15,6 +15,7 @@ import { Posts } from '../types';
 const Home = () => {
   const [opened, setOpened] = useState(false);
 
+  console.log('render')
   return (
     <>
 
