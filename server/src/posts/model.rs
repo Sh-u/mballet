@@ -127,11 +127,6 @@ impl Post {
     pub fn delete(id: i32) -> Result<usize, CustomError> {
         let conn = connection()?;
 
-        let found_post = posts::table
-            .select(posts::id)
-            .find(id)
-            .first::<i32>(&conn)?;
-
         let res = diesel::delete(posts::table.filter(posts::id.eq(id))).execute(&conn)?;
 
         Ok(res)

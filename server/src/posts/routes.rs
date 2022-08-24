@@ -1,5 +1,5 @@
 use crate::error_handler::CustomError;
-use crate::posts::model::{NewPost, Post, PostsRequestBody};
+use crate::posts::model::{Post, PostsRequestBody};
 use actix_web::{delete, get, post, put, web, HttpResponse};
 use serde_json::json;
 
@@ -35,4 +35,11 @@ async fn delete(id: web::Path<i32>) -> Result<HttpResponse, CustomError> {
     let res = Post::delete(id.into_inner())?;
 
     Ok(HttpResponse::Ok().json(json!({ "deleted": res })))
+}
+
+pub fn init_routes(config: &mut web::ServiceConfig) {
+    config.service(get_all);
+    config.service(create);
+    config.service(update);
+    config.service(delete);
 }

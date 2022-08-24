@@ -7,7 +7,8 @@ use actix_cors::Cors;
 use actix_web::{http, middleware::Logger, App, HttpServer};
 use dotenv::dotenv;
 use listenfd::ListenFd;
-use posts::routes::{create, delete, get_all, update};
+use posts::routes::init_routes as PostsInitRoutes;
+use users::routes::init_routes as UserInitRoutes;
 
 pub mod db;
 pub mod error_handler;
@@ -38,10 +39,8 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(cors)
             .wrap(Logger::default())
-            .service(create)
-            .service(get_all)
-            .service(update)
-            .service(delete)
+            .configure(PostsInitRoutes)
+            .configure(UserInitRoutes)
     });
 
     server = match listenfd.take_tcp_listener(0)? {

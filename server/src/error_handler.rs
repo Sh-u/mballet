@@ -2,7 +2,8 @@ use actix_web::{http::StatusCode, HttpResponse, ResponseError as ActixError};
 use diesel::result::Error as DieselError;
 use serde::Deserialize;
 use serde_json::json;
-use std::fmt::Display;
+use std::{borrow::Cow, fmt::Display};
+use validator::ValidationError;
 #[derive(Debug, Deserialize)]
 pub struct CustomError {
     message: String,
@@ -33,6 +34,24 @@ impl From<DieselError> for CustomError {
             DieselError::NotFound => CustomError::new(404, "Database not found"),
             err => CustomError::new(500, format!("Unknown diesel error: {}", err).as_str()),
         }
+    }
+}
+
+impl From<ValidationError> for CustomError {
+    fn from(error: ValidationError) -> Self {
+        println!("creating ValidationError");
+        let code: u16 = match error.code {
+            Cow::Borrowed(v) => v.parse().unwrap(),
+            Cow::Owned(v) => v.parse().unwrap(),
+        };
+
+        let message = match error.message {
+            Some(Cow::Borrowed(v)) => v.to_owned(),
+            Some(Cow::Owned(v)) => v,
+            _ => format!("Unknown Validation Error!"),
+        };
+
+        CustomError::new(code, message.as_str())
     }
 }
 
