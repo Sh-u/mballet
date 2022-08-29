@@ -1,16 +1,19 @@
-import {LoginForm} from '../components/LoginForm'
+import { Center } from '@mantine/core'
+import { AuthenticationForm } from '../components/AuthForm'
 
 
- const Login = () => {
+
+const Login = () => {
 
 
 
     return (
-        <div className='flex flex-col items-center justify-center w-full h-screen '>
-            <LoginForm/>
-
-
-        </div>
+        <Center sx={{
+            width: '100vw',
+            height: '100vh'
+        }}>
+            <AuthenticationForm />
+        </Center>
     )
 }
 

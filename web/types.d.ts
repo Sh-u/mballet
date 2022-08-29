@@ -17,3 +17,10 @@ export interface DropdownProps {
   refreshData: () => void
   post?: Post,
 }
+
+
+export type Credentials = {
+  email: string,
+  username: string,
+  password: string,
+}

@@ -1,23 +1,43 @@
+use crate::schema::confirmations;
 use crate::schema::users::{self, email};
 use crate::{db::connection, error_handler::CustomError};
 use chrono::Utc;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 use validator::{validate_email, validate_range, Validate};
+
+use super::auth_utils::hash_password;
 
 #[derive(Serialize, Deserialize, AsChangeset, Queryable, Validate)]
 pub struct User {
     pub id: i32,
     pub username: String,
+    pub password: String,
     pub email: String,
     pub is_admin: bool,
+    pub is_confirmed: bool,
     pub created_at: chrono::NaiveDateTime,
     pub updated_at: Option<chrono::NaiveDateTime>,
+}
+#[derive(Serialize, Deserialize, Insertable, Queryable)]
+#[table_name = "confirmations"]
+pub struct Confirmation {
+    pub id: Uuid,
+    pub email: String,
+    pub expires_at: chrono::NaiveDateTime,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct UsersApiBody {
     pub username: String,
+    pub email: String,
+    pub password: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SessionUser {
+    pub id: i32,
     pub email: String,
 }
 
@@ -26,21 +46,44 @@ pub struct UsersApiBody {
 pub struct NewUser {
     pub username: String,
     pub email: String,
+    pub password: String,
     pub is_admin: bool,
+    pub is_confirmed: bool,
     pub created_at: chrono::NaiveDateTime,
     pub updated_at: Option<chrono::NaiveDateTime>,
 }
 
+impl<T> From<T> for Confirmation
+where
+    T: Into<String> + Clone,
+{
+    fn from(mail: T) -> Self {
+        Confirmation {
+            id: Uuid::new_v4(),
+            email: mail.into(),
+            expires_at: Utc::now().naive_utc() + chrono::Duration::hours(24),
+        }
+    }
+}
+
+impl From<User> for SessionUser {
+    fn from(user: User) -> Self {
+        SessionUser {
+            id: user.id,
+            email: user.email,
+        }
+    }
+}
+
+impl Confirmation {
+    pub fn get(uuid: Uuid) -> Result<Confirmation, CustomError> {
+        let conn = connection()?;
+        Ok(confirmations::table.find(uuid).get_result(&conn)?)
+    }
+}
+
 impl User {
     pub fn create(input: UsersApiBody) -> Result<User, CustomError> {
-        let user = NewUser {
-            username: input.username.to_owned(),
-            email: input.email.to_owned(),
-            is_admin: true,
-            created_at: Utc::now().naive_utc(),
-            updated_at: Some(Utc::now().naive_utc()),
-        };
-
         let conn = connection()?;
         // if user.username.len() < 3 || user.email.len() < 5 {
         //     return Err(CustomError::new(400, "Your input is too short!"));
@@ -49,24 +92,60 @@ impl User {
         if !validate_range(input.username.len(), Some(4), Some(15)) {
             return Err(CustomError::new(400, "Username is too short!"));
         }
-        if !validate_email(input.email) {
+        if !validate_range(input.username.len(), Some(4), Some(15)) {
+            return Err(CustomError::new(400, "Password is too short!"));
+        }
+        if !validate_email(&input.email) {
             return Err(CustomError::new(400, "Incorrect email address!"));
         }
 
         if users::table
-            .filter(users::username.eq(input.username))
+            .filter(users::username.eq(&input.username))
             .execute(&conn)
             == Ok(1 as usize)
         {
-            println!("username error");
             return Err(CustomError::new(400, "username already exists!"));
         }
+
+        let user = NewUser {
+            username: input.username.to_owned(),
+            password: hash_password(input.password.as_str())?,
+            email: input.email.to_owned(),
+            is_admin: true,
+            is_confirmed: false,
+            created_at: Utc::now().naive_utc(),
+            updated_at: Some(Utc::now().naive_utc()),
+        };
 
         let user = diesel::insert_into(users::table)
             .values(user)
             .get_result(&conn)?;
 
         Ok(user)
+    }
+
+    pub fn confirm_creation(path_id: &str) -> Result<SessionUser, CustomError> {
+        let path_id = Uuid::parse_str(path_id).unwrap();
+        let conn = connection()?;
+
+        let mut confirmation = confirmations::table
+            .filter(confirmations::id.eq(path_id))
+            .load::<Confirmation>(&conn)?;
+
+        if let Some(confirmation) = confirmation.pop() {
+            if Utc::now().naive_utc() < confirmation.expires_at {
+                let updated_user =
+                    diesel::update(users::table.filter(users::email.eq(confirmation.email)))
+                        .set(users::is_confirmed.eq(true))
+                        .get_result::<User>(&conn)?;
+                return Ok(updated_user.into());
+            }
+            return Err(CustomError::new(410, "Confirmation link expired"));
+        }
+        return Err(CustomError::new(
+            400,
+            "Could not find a matching confirmation",
+        ));
     }
 
     pub fn get_all() -> Result<Vec<User>, CustomError> {

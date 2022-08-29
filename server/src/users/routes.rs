@@ -1,12 +1,19 @@
+use actix_session::Session;
 use actix_web::{delete, get, post, put, web, HttpResponse};
 use serde_json::json;
 
-use crate::{error_handler::CustomError, users::model::User};
+use crate::{
+    error_handler::CustomError,
+    users::{auth_utils::is_signed_in, model::User},
+};
 
 use super::model::UsersApiBody;
 
 #[post("users")]
-async fn create(input: web::Json<UsersApiBody>) -> Result<HttpResponse, CustomError> {
+async fn create(
+    input: web::Json<UsersApiBody>,
+    session: Session,
+) -> Result<HttpResponse, CustomError> {
     let user = User::create(input.into_inner())?;
 
     Ok(HttpResponse::Ok().json(user))
@@ -40,31 +47,6 @@ async fn get_all() -> Result<HttpResponse, CustomError> {
 
     Ok(HttpResponse::Ok().json(users))
 }
-// #[get("/users")]
-// async fn find_all() -> Result<HttpResponse, CustomError> {
-//     let employees = web::block(|| Users::find_all()).await.unwrap();
-//     Ok(HttpResponse::Ok().json(employees))
-// }
-// #[get("/users/{id}")]
-// async fn find(id: web::Path) -> Result<HttpResponse, CustomError> {
-//     let employee = Users::find(id.into_inner())?;
-//     Ok(HttpResponse::Ok().json(employee))
-// }
-// #[post("/users")]
-// async fn create(employee: web::Json) -> Result<HttpResponse, CustomError> {
-//     let employee = Users::create(employee.into_inner())?;
-//     Ok(HttpResponse::Ok().json(employee))
-// }
-// #[put("/users/{id}")]
-// async fn update(id: web::Path<u32>, employee: web::Json) -> Result<HttpResponse, CustomError> {
-//     let employee = ::Users(id.into_inner(), employee.into_inner())?;
-//     Ok(HttpResponse::Ok().json(employee))
-// }
-// #[delete("/users/{id}")]
-// async fn delete(id: web::Path<u32>) -> Result<HttpResponse, CustomError> {
-//     let deleted_employee = Users::delete(id.into_inner())?;
-//     Ok(HttpResponse::Ok().json(json!({ "deleted": deleted_employee })))
-// }
 
 pub fn init_routes(config: &mut web::ServiceConfig) {
     config.service(get_all);

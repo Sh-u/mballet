@@ -9,6 +9,13 @@ edition = "2021"
 actix-web = "4.0"
 actix-cors = "0.6.2"
 actix-rt = "1.0"
+actix-web-httpauth = "0.8.0"
+actix-session = "0.7.1"
+alcoholic_jwt = "4091.0.0"
+argonautica = "0.2.0"
+lettre = "0.10.1"
+native-tls = "0.2"
+reqwest = { version = "0.11", features = ["json"] }
 chrono = { version = "0.4", features = ["serde"] }
 dotenv = "0.11"
 diesel = { version = "1.4", features = ["postgres", "r2d2", "uuid", "chrono"] }
