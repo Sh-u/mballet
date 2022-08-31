@@ -1,8 +1,12 @@
 
 
+interface SendMailProps {
+    email: string;
+}
 
+const sendMail = async (props
 
-const sendMail = async (email: string): Promise<Response> => {
+    : SendMailProps): Promise<Response> => {
 
 
     return fetch("http://127.0.0.1:7878/register", {
@@ -10,7 +14,7 @@ const sendMail = async (email: string): Promise<Response> => {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(email)
+        body: JSON.stringify(props)
     })
 }
 

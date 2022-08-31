@@ -14,11 +14,13 @@ use actix_web_httpauth::{
 };
 use dotenv::dotenv;
 
+use actix_session::{storage::RedisActorSessionStore, Session, SessionMiddleware};
+
 use error_handler::CustomError;
 use listenfd::ListenFd;
 use posts::routes::init_routes as PostsInitRoutes;
 use std::any::type_name;
-use users::{register_handler::send_confirmation, routes::init_routes as UserInitRoutes};
+use users::routes::init_routes as UserInitRoutes;
 mod auth;
 pub mod db;
 pub mod error_handler;
@@ -57,6 +59,8 @@ async fn main() -> std::io::Result<()> {
 
     env_logger::init();
 
+    let private_key = actix_web::cookie::Key::generate();
+
     let mut server = HttpServer::new(move || {
         // let auth = HttpAuthentication::bearer(validator);
 
@@ -69,11 +73,18 @@ async fn main() -> std::io::Result<()> {
 
         App::new()
             // .wrap(auth)
+            .wrap(
+                SessionMiddleware::builder(
+                    RedisActorSessionStore::new("127.0.0.1:6379"),
+                    private_key.clone(),
+                )
+                .cookie_name("mballetcookie".to_string())
+                .build(),
+            )
             .wrap(cors)
             .wrap(Logger::default())
             .configure(PostsInitRoutes)
             .configure(UserInitRoutes)
-            .service(send_confirmation)
     });
 
     server = match listenfd.take_tcp_listener(0)? {

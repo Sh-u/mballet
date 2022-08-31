@@ -35,7 +35,12 @@ const validate = (values: Credentials) => {
     return errors;
 };
 
-export const AuthenticationForm = (props: PaperProps) => {
+
+interface AuthenticationFormProps {
+    showConfirmation: () => void,
+}
+
+export const AuthenticationForm = (props: AuthenticationFormProps) => {
     const [type, toggle] = useToggle(['login', 'register']);
 
     const router = useRouter();
@@ -47,7 +52,7 @@ export const AuthenticationForm = (props: PaperProps) => {
         },
         validate,
         onSubmit: async (values: Credentials) => {
-            alert(JSON.stringify(values, null, 2));
+            // alert(JSON.stringify(values, null, 2));
 
             if (type === 'register') {
 
@@ -58,9 +63,23 @@ export const AuthenticationForm = (props: PaperProps) => {
                 }
 
                 console.log('register success');
-                await sendMail(values.email);
 
-                router.push('/register');
+                const sendMailResponse = (await sendMail({
+                    email: values.email
+                }));
+
+                if (sendMailResponse.status !== 200) {
+                    console.log('confirmation error');
+                    return;
+                }
+
+                let confirmation = await sendMailResponse.json();
+
+                console.log(JSON.stringify(confirmation))
+
+                console.log('register success2');
+                props.showConfirmation();
+                // router.push(`/register/${confirmation.id}`);
 
             }
 

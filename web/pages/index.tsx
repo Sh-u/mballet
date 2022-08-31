@@ -13,23 +13,23 @@ import { Posts } from '../types';
 
 
 const Home = () => {
-  const [opened, setOpened] = useState(false);
+  // const [opened, setOpened] = useState(false);
 
   console.log('render')
   return (
     <>
-
+      {/* 
       <Modal
         opened={opened}
         onClose={() => setOpened(false)}
         title="Introduce yourself!"
       >
-        {/* Modal content */}
+
       </Modal>
 
       <Group position="center">
         <Button onClick={() => setOpened(true)}>Open Modal</Button>
-      </Group>
+      </Group> */}
 
     </>
   )

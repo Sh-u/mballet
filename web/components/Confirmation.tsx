@@ -1,11 +1,8 @@
-import { Anchor, Button, Center, Group, Paper, Text } from "@mantine/core"
-import Link from 'next/link';
-import { useRouter } from 'next/router';
+import { Center, Paper, Group, Anchor, Button, Text } from "@mantine/core"
+import Link from "next/link"
 
 
-const Register = () => {
-
-    const router = useRouter();
+const Confirmation = () => {
 
 
     return (
@@ -33,10 +30,7 @@ const Register = () => {
 
             </Paper>
         </Center>
-
-
     )
 }
 
-
-export default Register
+export default Confirmation

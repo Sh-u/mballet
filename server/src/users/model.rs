@@ -1,13 +1,20 @@
 use crate::schema::confirmations;
 use crate::schema::users::{self, email};
 use crate::{db::connection, error_handler::CustomError};
+use actix_session::Session;
 use chrono::Utc;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use validator::{validate_email, validate_range, Validate};
 
-use super::auth_utils::hash_password;
+use super::auth_utils::{hash_password, set_current_user, verify};
+
+#[derive(Deserialize, Serialize)]
+pub struct Credentials {
+    pub email: String,
+    pub password: String,
+}
 
 #[derive(Serialize, Deserialize, AsChangeset, Queryable, Validate)]
 pub struct User {
@@ -138,6 +145,8 @@ impl User {
                     diesel::update(users::table.filter(users::email.eq(confirmation.email)))
                         .set(users::is_confirmed.eq(true))
                         .get_result::<User>(&conn)?;
+
+                diesel::delete(confirmations::table.find(path_id)).execute(&conn)?;
                 return Ok(updated_user.into());
             }
             return Err(CustomError::new(410, "Confirmation link expired"));
@@ -170,6 +179,23 @@ impl User {
         diesel::delete(users::table.find(id)).execute(&conn)?;
 
         Ok(true)
+    }
+
+    pub fn login(session: Session, credentials: Credentials) -> Result<SessionUser, CustomError> {
+        let conn = connection()?;
+
+        let user = users::table
+            .filter(users::email.eq(credentials.email))
+            .get_result::<User>(&conn)?;
+
+        if !verify(credentials.password.as_str(), user.password.as_str())? {
+            return Err(CustomError::new(401, "Password does not match!"));
+        }
+
+        let session_user = SessionUser::from(user);
+        set_current_user(&session, &session_user);
+
+        Ok(session_user)
     }
 
     pub fn update(id: i32, input: UsersApiBody) -> Result<User, CustomError> {
