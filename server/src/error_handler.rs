@@ -1,3 +1,4 @@
+use actix_session::{SessionGetError, SessionInsertError};
 use actix_web::{http::StatusCode, HttpResponse, ResponseError as ActixError};
 use diesel::result::Error as DieselError;
 use serde::Deserialize;
@@ -52,6 +53,17 @@ impl From<ValidationError> for CustomError {
         };
 
         CustomError::new(code, message.as_str())
+    }
+}
+impl From<SessionInsertError> for CustomError {
+    fn from(error: SessionInsertError) -> Self {
+        CustomError::new(401, format!("Session insert error: {}", error).as_str())
+    }
+}
+
+impl From<SessionGetError> for CustomError {
+    fn from(error: SessionGetError) -> Self {
+        CustomError::new(401, format!("Session get error: {}", error).as_str())
     }
 }
 

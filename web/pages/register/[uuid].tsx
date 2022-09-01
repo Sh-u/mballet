@@ -30,8 +30,7 @@ const Register = (context: RegisterProps) => {
                 <Group position="center" mb="md" mt="md">
 
                     <Link href="/">
-                        <Anchor component="button"
-                            type="button" color='cyan' >Back to home page</Anchor>
+                        <Button >Back to home page</Button>
                     </Link>
 
 

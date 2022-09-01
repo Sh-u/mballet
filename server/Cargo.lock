@@ -2402,6 +2402,7 @@ dependencies = [
  "lazy_static",
  "lettre",
  "listenfd",
+ "log",
  "native-tls",
  "r2d2",
  "reqwest",

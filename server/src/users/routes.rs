@@ -3,13 +3,18 @@ use std::str::FromStr;
 use crate::{
     error_handler::CustomError,
     users::{
-        auth_utils::{get_current_user, is_signed_in},
+        auth_utils::{get_current_user, hash_password, is_signed_in, verify},
         model::{Confirmation, SessionUser, User},
         register_handler::{create_confirmation, RegisterData},
     },
 };
 use actix_session::Session;
-use actix_web::{delete, get, post, put, web, HttpResponse};
+use actix_web::{
+    cookie::{Cookie, SameSite},
+    delete, get,
+    http::header,
+    post, put, web, HttpRequest, HttpResponse,
+};
 use serde::Deserialize;
 use serde_json::json;
 
@@ -106,6 +111,37 @@ pub async fn confirm_creation(
     }
 }
 
+pub async fn testing(
+    session: Session,
+    credentials: web::Json<Credentials>,
+) -> Result<HttpResponse, CustomError> {
+    let cpy = credentials.into_inner().password.clone();
+
+    // let hashed = hash_password(cpy.as_str())?;
+    let hashed = "$argon2id$v=19$m=4096,t=192,p=12$gxcJJ5vAcvwpXvr1yuj2HD898QAS2i7hiLOkItZlyoc$QUT88YBeXGTFbEPRcjy3rEbNTRPbW1lUSyEaazizYCk";
+
+    let unhashed = verify(cpy.as_str(), hashed)?;
+
+    Ok(HttpResponse::Ok().json(json!({ "pass": unhashed })))
+}
+
+#[post("/testing")]
+async fn index(session: Session, req: HttpRequest) -> Result<HttpResponse, CustomError> {
+    log::info!("{req:?}");
+
+    // RequestSession trait is used for session access
+    let mut counter = 1;
+    if let Some(count) = session.get::<i32>("counter")? {
+        log::info!("SESSION value: {count}");
+        counter = count + 1;
+        session.insert("counter", counter)?;
+    } else {
+        session.insert("counter", counter)?;
+    }
+
+    Ok(HttpResponse::Ok().finish())
+}
+
 #[post("/login")]
 pub async fn login(
     session: Session,
@@ -120,14 +156,15 @@ pub async fn login(
 
     let user = User::login(session, credentials.into_inner())?;
 
-    Ok(HttpResponse::Ok().json(user))
+    Ok(HttpResponse::Ok().finish())
 }
 
 #[get("/me")]
 pub async fn me(session: Session) -> Result<HttpResponse, CustomError> {
-    let session_user: SessionUser = get_current_user(&session)?;
+    println!("me session: {:#?}", session.entries());
+    let session_user_id = get_current_user(&session)?;
 
-    let user = User::get_one(session_user.id)?;
+    let user = User::get_one(session_user_id)?;
 
     Ok(HttpResponse::Ok().json(user))
 }
@@ -142,4 +179,5 @@ pub fn init_routes(config: &mut web::ServiceConfig) {
     config.service(confirm_creation);
     config.service(me);
     config.service(login);
+    config.service(index);
 }

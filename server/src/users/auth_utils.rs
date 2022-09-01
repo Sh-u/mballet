@@ -29,29 +29,26 @@ pub fn is_signed_in(session: &Session) -> bool {
     }
 }
 
-pub fn set_current_user(session: &Session, user: &SessionUser) -> () {
+pub fn set_current_user(session: &Session, user_id: i32) -> () {
     session
-        .insert("user", user)
+        .insert("user", user_id)
         .expect("Inserting user into the session failed");
+
+    println!(
+        "session entires: {:?}, status: {:?}",
+        session.entries(),
+        session.status()
+    );
 }
 
-pub fn get_current_user(session: &Session) -> Result<SessionUser, CustomError> {
-    let user = session
-        .get::<SessionUser>("user")
-        .map_err(|_| {
-            return CustomError::new(401, "Getting user from the session failed");
-        })
-        .unwrap();
-
-    println!("get user: {:?}", user);
-
-    if user.is_none() {
-        Err(CustomError::new(
-            401,
-            "Getting user from the session failed",
-        ))
+pub fn get_current_user(session: &Session) -> Result<i32, CustomError> {
+    println!("entries: {:?}", session.entries());
+    if let Some(id) = session.get("user")? {
+        return Ok(id);
     } else {
-        println!("found user");
-        Ok(user.unwrap())
+        return Err(CustomError::new(
+            401,
+            format!("Getting user from the session failed:").as_str(),
+        ));
     }
 }

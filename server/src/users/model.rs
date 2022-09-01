@@ -2,6 +2,7 @@ use crate::schema::confirmations;
 use crate::schema::users::{self, email};
 use crate::{db::connection, error_handler::CustomError};
 use actix_session::Session;
+use actix_web::web;
 use chrono::Utc;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -181,21 +182,25 @@ impl User {
         Ok(true)
     }
 
-    pub fn login(session: Session, credentials: Credentials) -> Result<SessionUser, CustomError> {
+    pub fn login(session: Session, credentials: Credentials) -> Result<User, CustomError> {
         let conn = connection()?;
 
         let user = users::table
             .filter(users::email.eq(credentials.email))
             .get_result::<User>(&conn)?;
 
+        println!(
+            "user: {}, hash: {}",
+            credentials.password.as_str(),
+            user.password.as_str()
+        );
         if !verify(credentials.password.as_str(), user.password.as_str())? {
             return Err(CustomError::new(401, "Password does not match!"));
         }
 
-        let session_user = SessionUser::from(user);
-        set_current_user(&session, &session_user);
+        set_current_user(&session, user.id);
 
-        Ok(session_user)
+        Ok(user)
     }
 
     pub fn update(id: i32, input: UsersApiBody) -> Result<User, CustomError> {

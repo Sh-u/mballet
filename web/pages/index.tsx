@@ -1,36 +1,41 @@
 import { Button, Group, Modal } from '@mantine/core';
 import { InferGetStaticPropsType } from 'next';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import CreatePostForm from '../components/CreatePost';
 import DeleteModal from '../components/DeletePostModal';
 import { Posts } from '../types';
 
-
-
+import { Text } from '@mantine/core'
+import me from '../utils/me';
 
 
 
 
 const Home = () => {
-  // const [opened, setOpened] = useState(false);
+
+  const [logged, setLogged] = useState(false);
+
+  useEffect(() => {
+    const checkMe = async () => {
+      const response = await me();
+
+      if (response.status !== 200) {
+
+      } else {
+        setLogged(true)
+      }
+
+    }
+
+    checkMe().catch(console.error)
+
+  }, [])
 
   console.log('render')
   return (
     <>
-      {/* 
-      <Modal
-        opened={opened}
-        onClose={() => setOpened(false)}
-        title="Introduce yourself!"
-      >
-
-      </Modal>
-
-      <Group position="center">
-        <Button onClick={() => setOpened(true)}>Open Modal</Button>
-      </Group> */}
-
+      {logged ? <Text size='xl'>LOGGED IN</Text> : <Text size='xl'>NOT LOGGED IN</Text>}
     </>
   )
 }

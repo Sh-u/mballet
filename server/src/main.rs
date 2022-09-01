@@ -4,7 +4,9 @@ extern crate diesel;
 use std::env;
 
 use actix_cors::Cors;
-use actix_web::{dev::ServiceRequest, http, middleware::Logger, App, Error, HttpServer};
+use actix_web::{
+    cookie::SameSite, dev::ServiceRequest, http, middleware::Logger, App, Error, HttpServer,
+};
 use actix_web_httpauth::{
     extractors::{
         bearer::{BearerAuth, Config},
@@ -67,8 +69,15 @@ async fn main() -> std::io::Result<()> {
         let cors = Cors::default()
             .allowed_origin("http://localhost:3000")
             .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
-            .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
-            .allowed_header(http::header::CONTENT_TYPE)
+            .allowed_headers(vec![
+                http::header::AUTHORIZATION,
+                http::header::ACCEPT,
+                http::header::ACCESS_CONTROL_ALLOW_CREDENTIALS,
+                http::header::ACCESS_CONTROL_ALLOW_ORIGIN,
+                http::header::ACCESS_CONTROL_ALLOW_HEADERS,
+                http::header::CONTENT_TYPE,
+            ])
+            .supports_credentials()
             .max_age(3600);
 
         App::new()
@@ -78,7 +87,9 @@ async fn main() -> std::io::Result<()> {
                     RedisActorSessionStore::new("127.0.0.1:6379"),
                     private_key.clone(),
                 )
-                .cookie_name("mballetcookie".to_string())
+                .cookie_name("mballet".to_owned())
+                .cookie_same_site(SameSite::None)
+                .cookie_secure(true)
                 .build(),
             )
             .wrap(cors)

@@ -1,17 +1,19 @@
 import {
     Anchor, Button,
-    Divider, Group, Paper, PaperProps, PasswordInput, Stack, Text, TextInput
+    Divider, Group, Loader, Paper, PaperProps, PasswordInput, Stack, Text, TextInput
 } from '@mantine/core';
 import { upperFirst, useToggle } from '@mantine/hooks';
 import { useFormik } from 'formik';
 import { useRouter } from 'next/router';
-import { FacebookButton, GoogleButton } from '../components/SocialButtons';
+import { FacebookButton, GoogleButton } from './SocialButtons';
 import { Credentials } from '../types';
+import login from '../utils/login';
 import RegisterRequest from '../utils/RegisterRequest';
 import sendMail from '../utils/sendMail';
 
 
-const validate = (values: Credentials) => {
+
+const validate = (values: Credentials, type: string) => {
     const errors: Record<string, string> = {};
 
     if (!values.email) {
@@ -20,9 +22,9 @@ const validate = (values: Credentials) => {
         errors.email = 'Invalid email address';
     }
 
-    if (!values.username) {
+    if (!values.username && type === 'register') {
         errors.username = 'Required';
-    } else if (values.username.length < 3) {
+    } else if (values.username.length < 3 && type === 'register') {
         errors.username = 'Username should include at least 3 characters';
     }
 
@@ -50,10 +52,10 @@ export const AuthenticationForm = (props: AuthenticationFormProps) => {
             username: '',
             password: '',
         },
-        validate,
+        validate: (values: Credentials) => validate(values, type),
         onSubmit: async (values: Credentials) => {
-            // alert(JSON.stringify(values, null, 2));
 
+            console.log('submit')
             if (type === 'register') {
 
 
@@ -73,13 +75,21 @@ export const AuthenticationForm = (props: AuthenticationFormProps) => {
                     return;
                 }
 
-                let confirmation = await sendMailResponse.json();
-
-                console.log(JSON.stringify(confirmation))
 
                 console.log('register success2');
                 props.showConfirmation();
                 // router.push(`/register/${confirmation.id}`);
+
+            }
+            else {
+
+                console.log('login')
+                if ((await login(values)).status !== 200) {
+
+                    return;
+                }
+
+                router.push('/');
 
             }
 
@@ -109,6 +119,7 @@ export const AuthenticationForm = (props: AuthenticationFormProps) => {
                             placeholder="Your username"
                             value={formik.values.username}
                             onChange={formik.handleChange}
+                            error={formik.errors.username}
                         />
                     )}
 
@@ -150,7 +161,9 @@ export const AuthenticationForm = (props: AuthenticationFormProps) => {
                             ? 'Already have an account? Login'
                             : "Don't have an account? Register"}
                     </Anchor>
-                    <Button type="submit">{upperFirst(type)}</Button>
+
+                    {formik.isSubmitting ? <Loader /> : <Button type="submit" onClick={async () => formik.submitForm()}>{upperFirst(type)}</Button>}
+
                 </Group>
             </form>
         </Paper>
