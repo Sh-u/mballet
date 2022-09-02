@@ -87,6 +87,7 @@ async fn main() -> std::io::Result<()> {
                     RedisActorSessionStore::new("127.0.0.1:6379"),
                     private_key.clone(),
                 )
+                .cookie_path("/".to_owned())
                 .cookie_name("mballet".to_owned())
                 .cookie_same_site(SameSite::None)
                 .cookie_secure(true)

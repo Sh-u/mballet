@@ -1,9 +1,6 @@
-use actix_session::Session;
-
 use crate::error_handler::CustomError;
+use actix_session::Session;
 use argonautica::{Hasher, Verifier};
-
-use super::model::SessionUser;
 
 pub fn hash_password(password: &str) -> Result<String, CustomError> {
     Hasher::default()
@@ -33,16 +30,9 @@ pub fn set_current_user(session: &Session, user_id: i32) -> () {
     session
         .insert("user", user_id)
         .expect("Inserting user into the session failed");
-
-    println!(
-        "session entires: {:?}, status: {:?}",
-        session.entries(),
-        session.status()
-    );
 }
 
 pub fn get_current_user(session: &Session) -> Result<i32, CustomError> {
-    println!("entries: {:?}", session.entries());
     if let Some(id) = session.get("user")? {
         return Ok(id);
     } else {

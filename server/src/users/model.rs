@@ -1,8 +1,8 @@
 use crate::schema::confirmations;
-use crate::schema::users::{self, email};
+use crate::schema::users;
 use crate::{db::connection, error_handler::CustomError};
 use actix_session::Session;
-use actix_web::web;
+
 use chrono::Utc;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -15,6 +15,12 @@ use super::auth_utils::{hash_password, set_current_user, verify};
 pub struct Credentials {
     pub email: String,
     pub password: String,
+}
+
+pub struct MailInfo<'a> {
+    pub title: &'a str,
+    pub message: &'a str,
+    pub path: &'a str,
 }
 
 #[derive(Serialize, Deserialize, AsChangeset, Queryable, Validate)]
@@ -43,12 +49,6 @@ pub struct UsersApiBody {
     pub password: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct SessionUser {
-    pub id: i32,
-    pub email: String,
-}
-
 #[derive(Insertable, AsChangeset, Deserialize, Debug)]
 #[table_name = "users"]
 pub struct NewUser {
@@ -74,15 +74,6 @@ where
     }
 }
 
-impl From<User> for SessionUser {
-    fn from(user: User) -> Self {
-        SessionUser {
-            id: user.id,
-            email: user.email,
-        }
-    }
-}
-
 impl Confirmation {
     pub fn get(uuid: Uuid) -> Result<Confirmation, CustomError> {
         let conn = connection()?;
@@ -93,14 +84,11 @@ impl Confirmation {
 impl User {
     pub fn create(input: UsersApiBody) -> Result<User, CustomError> {
         let conn = connection()?;
-        // if user.username.len() < 3 || user.email.len() < 5 {
-        //     return Err(CustomError::new(400, "Your input is too short!"));
-        // }
 
         if !validate_range(input.username.len(), Some(4), Some(15)) {
             return Err(CustomError::new(400, "Username is too short!"));
         }
-        if !validate_range(input.username.len(), Some(4), Some(15)) {
+        if !validate_range(input.password.len(), Some(4), Some(15)) {
             return Err(CustomError::new(400, "Password is too short!"));
         }
         if !validate_email(&input.email) {
@@ -113,6 +101,12 @@ impl User {
             == Ok(1 as usize)
         {
             return Err(CustomError::new(400, "username already exists!"));
+        } else if users::table
+            .filter(users::email.eq(&input.email))
+            .execute(&conn)
+            == Ok(1 as usize)
+        {
+            return Err(CustomError::new(400, "email already exists!"));
         }
 
         let user = NewUser {
@@ -132,7 +126,7 @@ impl User {
         Ok(user)
     }
 
-    pub fn confirm_creation(path_id: &str) -> Result<SessionUser, CustomError> {
+    pub fn confirm_creation(path_id: &str) -> Result<User, CustomError> {
         let path_id = Uuid::parse_str(path_id).unwrap();
         let conn = connection()?;
 
@@ -148,7 +142,36 @@ impl User {
                         .get_result::<User>(&conn)?;
 
                 diesel::delete(confirmations::table.find(path_id)).execute(&conn)?;
-                return Ok(updated_user.into());
+                return Ok(updated_user);
+            }
+            return Err(CustomError::new(410, "Confirmation link expired"));
+        }
+        return Err(CustomError::new(
+            400,
+            "Could not find a matching confirmation",
+        ));
+    }
+
+    pub fn confirm_reset(path_id: &str, new_password: &str) -> Result<(), CustomError> {
+        if !validate_range(new_password.len(), Some(4), Some(15)) {
+            return Err(CustomError::new(400, "Password is too short!"));
+        }
+
+        let path_id = Uuid::parse_str(path_id).unwrap();
+        let conn = connection()?;
+
+        let mut confirmation = confirmations::table
+            .filter(confirmations::id.eq(path_id))
+            .load::<Confirmation>(&conn)?;
+
+        if let Some(confirmation) = confirmation.pop() {
+            if Utc::now().naive_utc() < confirmation.expires_at {
+                diesel::update(users::table.filter(users::email.eq(confirmation.email)))
+                    .set(users::password.eq(new_password.to_owned()))
+                    .get_result::<User>(&conn)?;
+
+                diesel::delete(confirmations::table.find(path_id)).execute(&conn)?;
+                return Ok(());
             }
             return Err(CustomError::new(410, "Confirmation link expired"));
         }
@@ -215,5 +238,13 @@ impl User {
             .get_result(&conn)?;
 
         Ok(user)
+    }
+
+    pub fn reset(email: &str) -> Result<(), CustomError> {
+        let conn = connection()?;
+
+        users::table.filter(users::email.eq(email)).execute(&conn)?;
+
+        Ok(())
     }
 }

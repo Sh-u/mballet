@@ -1,30 +1,20 @@
-use std::str::FromStr;
-
+use super::model::{Credentials, UsersApiBody};
 use crate::{
     error_handler::CustomError,
     users::{
-        auth_utils::{get_current_user, hash_password, is_signed_in, verify},
-        model::{Confirmation, SessionUser, User},
+        auth_utils::{get_current_user, is_signed_in},
+        model::{Confirmation, MailInfo, User},
         register_handler::{create_confirmation, RegisterData},
     },
 };
 use actix_session::Session;
-use actix_web::{
-    cookie::{Cookie, SameSite},
-    delete, get,
-    http::header,
-    post, put, web, HttpRequest, HttpResponse,
-};
-use serde::Deserialize;
+use actix_web::{delete, get, post, put, web, HttpResponse};
+use serde::{Deserialize, Serialize};
 use serde_json::json;
-
-use super::model::{Credentials, UsersApiBody};
+use std::str::FromStr;
 
 #[post("users")]
-async fn create(
-    input: web::Json<UsersApiBody>,
-    session: Session,
-) -> Result<HttpResponse, CustomError> {
+async fn create(input: web::Json<UsersApiBody>) -> Result<HttpResponse, CustomError> {
     let user = User::create(input.into_inner())?;
 
     Ok(HttpResponse::Ok().json(user))
@@ -77,8 +67,15 @@ pub async fn send_confirmation(
     if is_signed_in(&session) {
         return Err(CustomError::new(400, "already signed in!"));
     }
+    let email = data.into_inner().email;
 
-    let result = create_confirmation(data.into_inner().email);
+    let info = MailInfo {
+        message: "Click on the link to reset your password.",
+        path: "reset",
+        title: "Mballet password reset",
+    };
+
+    let result = create_confirmation(email, info);
 
     match result {
         Ok(_) => Ok(HttpResponse::Ok().finish()),
@@ -111,37 +108,6 @@ pub async fn confirm_creation(
     }
 }
 
-pub async fn testing(
-    session: Session,
-    credentials: web::Json<Credentials>,
-) -> Result<HttpResponse, CustomError> {
-    let cpy = credentials.into_inner().password.clone();
-
-    // let hashed = hash_password(cpy.as_str())?;
-    let hashed = "$argon2id$v=19$m=4096,t=192,p=12$gxcJJ5vAcvwpXvr1yuj2HD898QAS2i7hiLOkItZlyoc$QUT88YBeXGTFbEPRcjy3rEbNTRPbW1lUSyEaazizYCk";
-
-    let unhashed = verify(cpy.as_str(), hashed)?;
-
-    Ok(HttpResponse::Ok().json(json!({ "pass": unhashed })))
-}
-
-#[post("/testing")]
-async fn index(session: Session, req: HttpRequest) -> Result<HttpResponse, CustomError> {
-    log::info!("{req:?}");
-
-    // RequestSession trait is used for session access
-    let mut counter = 1;
-    if let Some(count) = session.get::<i32>("counter")? {
-        log::info!("SESSION value: {count}");
-        counter = count + 1;
-        session.insert("counter", counter)?;
-    } else {
-        session.insert("counter", counter)?;
-    }
-
-    Ok(HttpResponse::Ok().finish())
-}
-
 #[post("/login")]
 pub async fn login(
     session: Session,
@@ -154,7 +120,38 @@ pub async fn login(
         ));
     }
 
-    let user = User::login(session, credentials.into_inner())?;
+    User::login(session, credentials.into_inner())?;
+
+    Ok(HttpResponse::Ok().finish())
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct ResetInput {
+    email: String,
+}
+
+#[post("/reset")]
+pub async fn reset(input: web::Json<ResetInput>) -> Result<HttpResponse, CustomError> {
+    let email = input.into_inner().email;
+    User::reset(&email)?;
+
+    let info = MailInfo {
+        message: "Click on the link to reset your password.",
+        path: "reset",
+        title: "Mballet password reset",
+    };
+
+    create_confirmation(email, info)?;
+
+    Ok(HttpResponse::Ok().finish())
+}
+
+#[post("/reset/{path_id}")]
+pub async fn confirm_reset(
+    path_id: web::Path<String>,
+    input: web::Json<Credentials>,
+) -> Result<HttpResponse, CustomError> {
+    User::confirm_reset(path_id.as_str(), input.into_inner().password.as_str())?;
 
     Ok(HttpResponse::Ok().finish())
 }
@@ -169,6 +166,17 @@ pub async fn me(session: Session) -> Result<HttpResponse, CustomError> {
     Ok(HttpResponse::Ok().json(user))
 }
 
+#[post("/logout")]
+pub async fn logout(session: Session) -> Result<HttpResponse, CustomError> {
+    if !is_signed_in(&session) {
+        return Err(CustomError::new(400, "There is no one signed in"));
+    }
+
+    session.purge();
+
+    Ok(HttpResponse::Ok().finish())
+}
+
 pub fn init_routes(config: &mut web::ServiceConfig) {
     config.service(get_all);
     config.service(create);
@@ -179,5 +187,6 @@ pub fn init_routes(config: &mut web::ServiceConfig) {
     config.service(confirm_creation);
     config.service(me);
     config.service(login);
-    config.service(index);
+    config.service(logout);
+    config.service(reset);
 }

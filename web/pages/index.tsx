@@ -1,4 +1,4 @@
-import { Button, Group, Modal } from '@mantine/core';
+import { Button, Center, Group, Loader, Modal, Stack } from '@mantine/core';
 import { InferGetStaticPropsType } from 'next';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -8,6 +8,7 @@ import { Posts } from '../types';
 
 import { Text } from '@mantine/core'
 import me from '../utils/me';
+import logout from '../utils/logout';
 
 
 
@@ -15,8 +16,15 @@ import me from '../utils/me';
 const Home = () => {
 
   const [logged, setLogged] = useState(false);
+  const router = useRouter();
+  const refreshData = () => {
+    console.log("refreshing");
+    router.replace(router.asPath);
+  }
+  const [isLoading, setLoading] = useState(false)
 
   useEffect(() => {
+    setLoading(true)
     const checkMe = async () => {
       const response = await me();
 
@@ -24,18 +32,38 @@ const Home = () => {
 
       } else {
         setLogged(true)
+
       }
 
     }
 
     checkMe().catch(console.error)
-
+    setLoading(false)
   }, [])
 
-  console.log('render')
+  const handleLogout = async () => {
+    await logout();
+    refreshData();
+  }
+
+  if (isLoading) return (
+    <Center mt={'lg'}>
+      <Loader size={'lg'}></Loader>
+    </Center>
+
+  )
+
   return (
     <>
-      {logged ? <Text size='xl'>LOGGED IN</Text> : <Text size='xl'>NOT LOGGED IN</Text>}
+      <Center mt={'lg'}>
+        {logged ?
+          <Stack>
+            <Text size='xl'>LOGGED IN</Text>
+            <Button onClick={handleLogout}>Logout</Button>
+          </Stack> :
+          <Text size='xl'>NOT LOGGED IN</Text>
+        }
+      </Center>
     </>
   )
 }

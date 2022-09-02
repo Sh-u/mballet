@@ -1,18 +1,15 @@
+use super::model::{Confirmation, MailInfo};
+use crate::error_handler::CustomError;
+use lettre::message::MultiPart;
+use lettre::transport::smtp::authentication::Credentials;
+use lettre::transport::smtp::client::{Tls, TlsParameters};
+use lettre::{Message, SmtpTransport, Transport};
 use std::env;
 
-use crate::error_handler::CustomError;
-
-use super::model::Confirmation;
-
-use lettre::message::header::Header;
-use lettre::message::{Mailbox, MultiPart, MultiPartKind};
-use lettre::transport::smtp::authentication::Credentials;
-
-use lettre::transport::smtp::client::{Tls, TlsParameters};
-use lettre::{message, Message, SmtpTransport, Transport};
-use native_tls::{Protocol, TlsConnector};
-
-pub fn send_confirmation_mail(confirmation: &Confirmation) -> Result<(), CustomError> {
+pub fn send_confirmation_mail(
+    confirmation: &Confirmation,
+    info: MailInfo,
+) -> Result<(), CustomError> {
     let domain_url = env::var("DOMAIN_URL").expect("set DOMAIN_URL env");
     let smtp_sender = env::var("SMTP_SENDER").expect("set SMTP SENDER env");
     let smtp_host = env::var("SMTP_HOST").expect("set SMTP HOST env");
@@ -27,19 +24,23 @@ pub fn send_confirmation_mail(confirmation: &Confirmation) -> Result<(), CustomE
         .to_string();
 
     let html_text = format!(
-        "Please click on the link below to complete registration. <br/>
-             <a href=\"{domain}/register/{id}\">Complete registration</a> <br/>
+        "{message}. <br/>
+             <a href=\"{domain}/{path}/{id}\">Complete registration</a> <br/>
             This link expires on <strong>{expires}</strong>",
+        message = info.message,
         domain = domain_url,
+        path = info.path,
         id = confirmation.id,
         expires = expires
     );
 
     let plain_text = format!(
-        "Please visit the link below to complete registration:\n
-        {domain}/register/{id}\n
+        "{message}:\n
+        {domain}/{path}/{id}\n
         This link expires on {expires}.",
+        message = info.message,
         domain = domain_url,
+        path = info.message,
         id = confirmation.id,
         expires = expires
     );
@@ -49,7 +50,7 @@ pub fn send_confirmation_mail(confirmation: &Confirmation) -> Result<(), CustomE
     let email = Message::builder()
         .from(smtp_sender.parse().unwrap())
         .to(confirmation.email.to_owned().parse().unwrap())
-        .subject("Mballet registration")
+        .subject(info.title)
         .multipart(MultiPart::alternative_plain_html(plain_text, html_text))
         .map_err(|err| {
             return CustomError::new(

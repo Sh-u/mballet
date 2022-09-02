@@ -24,14 +24,14 @@ const validate = (values: Credentials, type: string) => {
 
     if (!values.username && type === 'register') {
         errors.username = 'Required';
-    } else if (values.username.length < 3 && type === 'register') {
-        errors.username = 'Username should include at least 3 characters';
+    } else if (values.username.length < 4 && type === 'register') {
+        errors.username = 'Username should include at least 4 characters';
     }
 
     if (!values.password) {
         errors.password = 'Required';
-    } else if (values.password.length < 6) {
-        errors.password = 'Password should include at least 6 characters';
+    } else if (values.password.length < 4) {
+        errors.password = 'Password should include at least 4 characters';
     }
 
     return errors;
@@ -58,8 +58,21 @@ export const AuthenticationForm = (props: AuthenticationFormProps) => {
             console.log('submit')
             if (type === 'register') {
 
+                let createUserResponse = await RegisterRequest(values);
+                if (createUserResponse.status !== 200) {
+                    let err = await createUserResponse.json();
 
-                if ((await RegisterRequest(values)).status !== 200) {
+                    console.log(err.message.search("email"))
+                    if (err.message.search("email") >= 0) {
+                        formik.setErrors({
+                            email: "Email address already taken."
+                        })
+
+                    } else {
+                        formik.setErrors({
+                            username: "Username already taken."
+                        })
+                    }
 
                     return;
                 }
@@ -149,18 +162,29 @@ export const AuthenticationForm = (props: AuthenticationFormProps) => {
 
                 </Stack>
 
+
                 <Group position="apart" mt="xl">
-                    <Anchor
-                        component="button"
-                        type="button"
-                        color="dimmed"
-                        onClick={() => toggle()}
-                        size="xs"
-                    >
-                        {type === 'register'
-                            ? 'Already have an account? Login'
-                            : "Don't have an account? Register"}
-                    </Anchor>
+                    <Stack align={'flex-start'} justify='center'>
+                        <Anchor
+                            component="button"
+                            type="button"
+                            color="dimmed"
+                            onClick={() => toggle()}
+                            size="xs"
+                        >
+                            {type === 'register'
+                                ? 'Already have an account? Login'
+                                : "Don't have an account? Register"}
+                        </Anchor>
+
+                        <Anchor component="button"
+                            type="button"
+                            color="dimmed"
+                            size='xs'
+                            onClick={() => router.push('/forgotpassword')}>
+                            Forgot password?
+                        </Anchor>
+                    </Stack>
 
                     {formik.isSubmitting ? <Loader /> : <Button type="submit" onClick={async () => formik.submitForm()}>{upperFirst(type)}</Button>}
 

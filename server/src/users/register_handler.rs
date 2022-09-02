@@ -1,17 +1,10 @@
-use std::str::FromStr;
-
-use actix_session::Session;
-use actix_web::{get, post, web, HttpResponse};
-use serde::{Deserialize, Serialize};
-use serde_json::json;
-
-use super::auth_utils::is_signed_in;
-use super::email_service::send_confirmation_mail;
-use super::model::{Confirmation, User};
+use super::model::Confirmation;
+use super::{email_service::send_confirmation_mail, model::MailInfo};
 use crate::db::connection;
 use crate::error_handler::CustomError;
 use crate::schema::confirmations;
 use diesel::RunQueryDsl;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct RegisterData {
@@ -23,10 +16,10 @@ pub struct ConfirmationId {
     pub uuid: String,
 }
 
-pub fn create_confirmation(email: String) -> Result<uuid::Uuid, CustomError> {
+pub fn create_confirmation(email: String, info: MailInfo) -> Result<uuid::Uuid, CustomError> {
     let confirmation = insert_record(email)?;
 
-    send_confirmation_mail(&confirmation)?;
+    send_confirmation_mail(&confirmation, info)?;
 
     Ok(confirmation.id)
 }
