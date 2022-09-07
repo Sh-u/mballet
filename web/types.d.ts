@@ -29,3 +29,7 @@ export type Credentials = {
 export type GetConfirmationProps = {
   uuid: string
 }
+
+export type ConfirmResetInput = {
+  password: string,
+}

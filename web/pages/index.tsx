@@ -44,6 +44,7 @@ const Home = () => {
   const handleLogout = async () => {
     await logout();
     refreshData();
+    console.log('logout')
   }
 
   if (isLoading) return (

@@ -16,6 +16,10 @@ pub struct Credentials {
     pub email: String,
     pub password: String,
 }
+#[derive(Deserialize, Serialize)]
+pub struct ResetPassword {
+    pub password: String,
+}
 
 pub struct MailInfo<'a> {
     pub title: &'a str,
@@ -23,7 +27,40 @@ pub struct MailInfo<'a> {
     pub path: &'a str,
 }
 
-#[derive(Serialize, Deserialize, AsChangeset, Queryable, Validate)]
+#[derive(Serialize, Deserialize)]
+pub struct GoogleRedirectCode {
+    pub code: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct GoogleTokenResponse {
+    pub access_token: String,
+    pub expires_in: i32,
+    pub refresh_token: String,
+    pub scope: String,
+    pub token_type: String,
+    pub id_token: String,
+}
+
+#[derive(Debug, PartialEq, Deserialize, Serialize)]
+pub struct GoogleParams {
+    pub client_id: String,
+    pub redirect_uri: String,
+    pub scope: String,
+    pub response_type: String,
+    pub access_type: String,
+    pub prompt: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct GoogleUserInfoResponse {
+    pub picture: String,
+    pub verified_email: bool,
+    pub id: String,
+    pub email: String,
+}
+
+#[derive(Identifiable, Serialize, Deserialize, AsChangeset, Queryable, Validate)]
 pub struct User {
     pub id: i32,
     pub username: String,
@@ -31,9 +68,11 @@ pub struct User {
     pub email: String,
     pub is_admin: bool,
     pub is_confirmed: bool,
+    pub auth_type: String,
     pub created_at: chrono::NaiveDateTime,
     pub updated_at: Option<chrono::NaiveDateTime>,
 }
+
 #[derive(Serialize, Deserialize, Insertable, Queryable)]
 #[table_name = "confirmations"]
 pub struct Confirmation {
@@ -47,6 +86,7 @@ pub struct UsersApiBody {
     pub username: String,
     pub email: String,
     pub password: String,
+    pub auth_type: String,
 }
 
 #[derive(Insertable, AsChangeset, Deserialize, Debug)]
@@ -57,6 +97,7 @@ pub struct NewUser {
     pub password: String,
     pub is_admin: bool,
     pub is_confirmed: bool,
+    pub auth_type: String,
     pub created_at: chrono::NaiveDateTime,
     pub updated_at: Option<chrono::NaiveDateTime>,
 }
@@ -85,10 +126,10 @@ impl User {
     pub fn create(input: UsersApiBody) -> Result<User, CustomError> {
         let conn = connection()?;
 
-        if !validate_range(input.username.len(), Some(4), Some(15)) {
+        if !validate_range(input.username.len(), Some(4), Some(25)) {
             return Err(CustomError::new(400, "Username is too short!"));
         }
-        if !validate_range(input.password.len(), Some(4), Some(15)) {
+        if !validate_range(input.password.len(), Some(4), Some(20)) {
             return Err(CustomError::new(400, "Password is too short!"));
         }
         if !validate_email(&input.email) {
@@ -115,6 +156,7 @@ impl User {
             email: input.email.to_owned(),
             is_admin: true,
             is_confirmed: false,
+            auth_type: input.auth_type,
             created_at: Utc::now().naive_utc(),
             updated_at: Some(Utc::now().naive_utc()),
         };
@@ -167,7 +209,7 @@ impl User {
         if let Some(confirmation) = confirmation.pop() {
             if Utc::now().naive_utc() < confirmation.expires_at {
                 diesel::update(users::table.filter(users::email.eq(confirmation.email)))
-                    .set(users::password.eq(new_password.to_owned()))
+                    .set(users::password.eq(hash_password(new_password.to_owned().as_str())?))
                     .get_result::<User>(&conn)?;
 
                 diesel::delete(confirmations::table.find(path_id)).execute(&conn)?;
@@ -212,6 +254,13 @@ impl User {
             .filter(users::email.eq(credentials.email))
             .get_result::<User>(&conn)?;
 
+        if !user.is_confirmed {
+            return Err(CustomError::new(
+                401,
+                "Verify your email address before signing in!",
+            ));
+        }
+
         println!(
             "user: {}, hash: {}",
             credentials.password.as_str(),
@@ -243,7 +292,9 @@ impl User {
     pub fn reset(email: &str) -> Result<(), CustomError> {
         let conn = connection()?;
 
-        users::table.filter(users::email.eq(email)).execute(&conn)?;
+        if users::table.filter(users::email.eq(email)).execute(&conn)? == 0 {
+            return Err(CustomError::new(400, "Wrong email address."));
+        }
 
         Ok(())
     }

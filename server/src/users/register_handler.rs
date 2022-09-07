@@ -30,7 +30,10 @@ fn insert_record(email: String) -> Result<Confirmation, CustomError> {
 
     let inserted = diesel::insert_into(confirmations::table)
         .values(&new_record)
-        .get_result::<Confirmation>(&conn)?;
+        .get_result::<Confirmation>(&conn);
 
-    Ok(inserted)
+    match inserted {
+        Ok(v) => Ok(v),
+        Err(_) => Err(CustomError::new(400, "Email already sent.")),
+    }
 }

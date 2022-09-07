@@ -1,53 +1,20 @@
 #[macro_use]
 extern crate diesel;
 
-use std::env;
-
 use actix_cors::Cors;
-use actix_web::{
-    cookie::SameSite, dev::ServiceRequest, http, middleware::Logger, App, Error, HttpServer,
-};
-use actix_web_httpauth::{
-    extractors::{
-        bearer::{BearerAuth, Config},
-        AuthenticationError,
-    },
-    middleware::HttpAuthentication,
-};
+use actix_session::{storage::RedisActorSessionStore, SessionMiddleware};
+use actix_web::{cookie::SameSite, http, middleware::Logger, App, HttpServer};
 use dotenv::dotenv;
-
-use actix_session::{storage::RedisActorSessionStore, Session, SessionMiddleware};
-
-use error_handler::CustomError;
 use listenfd::ListenFd;
 use posts::routes::init_routes as PostsInitRoutes;
-use std::any::type_name;
+use std::env;
 use users::routes::init_routes as UserInitRoutes;
-mod auth;
+
 pub mod db;
 pub mod error_handler;
 pub mod posts;
 pub mod schema;
 pub mod users;
-
-async fn validator(
-    req: ServiceRequest,
-    credentials: BearerAuth,
-) -> Result<ServiceRequest, (Error, ServiceRequest)> {
-    let config = req.app_data::<Config>().cloned().unwrap_or_default();
-
-    println!("config: {:#?}", config);
-
-    if let Ok(res) = auth::validate_token(credentials.token()).await {
-        if res == true {
-            return Ok(req);
-        } else {
-            return Err((AuthenticationError::from(config).into(), req));
-        }
-    }
-
-    Err((AuthenticationError::from(config).into(), req))
-}
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -64,8 +31,6 @@ async fn main() -> std::io::Result<()> {
     let private_key = actix_web::cookie::Key::generate();
 
     let mut server = HttpServer::new(move || {
-        // let auth = HttpAuthentication::bearer(validator);
-
         let cors = Cors::default()
             .allowed_origin("http://localhost:3000")
             .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
@@ -81,7 +46,6 @@ async fn main() -> std::io::Result<()> {
             .max_age(3600);
 
         App::new()
-            // .wrap(auth)
             .wrap(
                 SessionMiddleware::builder(
                     RedisActorSessionStore::new("127.0.0.1:6379"),

@@ -10,6 +10,7 @@ import { Credentials } from '../types';
 import login from '../utils/login';
 import RegisterRequest from '../utils/RegisterRequest';
 import sendMail from '../utils/sendMail';
+import googleInit from '../utils/googleInit';
 
 
 
@@ -46,6 +47,19 @@ export const AuthenticationForm = (props: AuthenticationFormProps) => {
     const [type, toggle] = useToggle(['login', 'register']);
 
     const router = useRouter();
+
+    const handleGoogleClick = async () => {
+        let response = await googleInit();
+
+        if (response.status !== 200) {
+            return;
+        }
+
+        let body = await response.json();
+
+        router.push(body.url);
+    }
+
     const formik = useFormik({
         initialValues: {
             email: '',
@@ -97,7 +111,15 @@ export const AuthenticationForm = (props: AuthenticationFormProps) => {
             else {
 
                 console.log('login')
-                if ((await login(values)).status !== 200) {
+
+                const loginResponse = await login(values);
+
+                if (loginResponse.status !== 200) {
+                    let err = await loginResponse.json();
+
+                    formik.setErrors({
+                        email: err.message
+                    })
 
                     return;
                 }
@@ -115,9 +137,9 @@ export const AuthenticationForm = (props: AuthenticationFormProps) => {
             </Text>
 
 
-            <Group grow mb="md" mt="md">
-                <GoogleButton radius="xl">Google</GoogleButton>
-                <FacebookButton radius="xl"><div>Facebook</div></FacebookButton>
+            <Group position='center' mb="md" mt="md">
+                <GoogleButton radius="xl" clickHandler={handleGoogleClick}>Google</GoogleButton>
+                {/* <FacebookButton radius="xl"><div>Facebook</div></FacebookButton> */}
             </Group>
 
             <Divider label="Or continue with email" labelPosition="center" my="lg" />

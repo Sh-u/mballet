@@ -132,32 +132,3 @@ impl Post {
         Ok(res)
     }
 }
-
-// pub fn create<'a>(conn: &PgConnection, _title: &'a str, _body: &'a str) -> Post {
-//     let new_post = NewPost {
-//         body: _body,
-//         title: _title,
-//         published: false,
-//     };
-
-//     diesel::insert_into(posts::table)
-//         .values(&new_post)
-//         .get_result(conn)
-//         .expect("error saving new post")
-// }
-
-// pub fn show_posts(conn: &PgConnection) {
-//     let results = table
-//         .filter(published.eq(true))
-//         .limit(5)
-//         .load::<Post>(conn)
-//         .expect("Error loading posts");
-
-//     println!("Displaying {} posts", results.len());
-//     for post in results {
-//         println!("{}", post.title);
-//         println!(" | ");
-//         println!("{}", post.body);
-//         println!("----------\n");
-//     }
-// }

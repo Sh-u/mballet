@@ -1,15 +1,16 @@
-import { GetConfirmationProps } from "../types"
+import { ConfirmResetInput, GetConfirmationProps } from "../types"
 
 
 
-const confirmReset = async (props: GetConfirmationProps): Promise<Response> => {
+const confirmReset = async (props: GetConfirmationProps, input: ConfirmResetInput): Promise<Response> => {
 
     return fetch(`http://127.0.0.1:7878/reset/${props.uuid}`, {
         method: 'POST',
         headers: {
-            'Contet-Type': 'application/json'
+            'Content-Type': 'application/json'
         },
-        body: JSON.stringify(props)
+        body: JSON.stringify(input),
+        credentials: 'include'
     })
 
 }
