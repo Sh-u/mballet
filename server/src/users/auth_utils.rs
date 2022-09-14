@@ -38,7 +38,7 @@ pub fn get_current_user(session: &Session) -> Result<i32, CustomError> {
     } else {
         return Err(CustomError::new(
             401,
-            format!("Getting user from the session failed:").as_str(),
+            format!("Getting user from the session failed.").as_str(),
         ));
     }
 }

@@ -154,7 +154,7 @@ impl User {
             username: input.username.to_owned(),
             password: hash_password(input.password.as_str())?,
             email: input.email.to_owned(),
-            is_admin: true,
+            is_admin: false,
             is_confirmed: false,
             auth_type: input.auth_type,
             created_at: Utc::now().naive_utc(),

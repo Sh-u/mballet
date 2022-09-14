@@ -16,11 +16,6 @@ import logout from '../utils/logout';
 const Home = () => {
 
   const [logged, setLogged] = useState(false);
-  const router = useRouter();
-  const refreshData = () => {
-    console.log("refreshing");
-    router.replace(router.asPath);
-  }
   const [isLoading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -41,9 +36,16 @@ const Home = () => {
     setLoading(false)
   }, [])
 
+
+
   const handleLogout = async () => {
-    await logout();
-    refreshData();
+    let response = await logout();
+
+    if (response.status !== 200) {
+      return;
+    }
+    setLogged(false)
+
     console.log('logout')
   }
 

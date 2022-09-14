@@ -4,12 +4,14 @@ extern crate diesel;
 use actix_cors::Cors;
 use actix_session::{storage::RedisActorSessionStore, SessionMiddleware};
 use actix_web::{cookie::SameSite, http, middleware::Logger, App, HttpServer};
+use bookings::routes::init_routes as BookingsInitRoutes;
 use dotenv::dotenv;
 use listenfd::ListenFd;
 use posts::routes::init_routes as PostsInitRoutes;
 use std::env;
 use users::routes::init_routes as UserInitRoutes;
 
+pub mod bookings;
 pub mod db;
 pub mod error_handler;
 pub mod posts;
@@ -61,6 +63,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(Logger::default())
             .configure(PostsInitRoutes)
             .configure(UserInitRoutes)
+            .configure(BookingsInitRoutes)
     });
 
     server = match listenfd.take_tcp_listener(0)? {

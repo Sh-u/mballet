@@ -5,7 +5,7 @@ CREATE TABLE users (
   username TEXT NOT NULL UNIQUE,
   password TEXT NOT NULL,
   email TEXT NOT NULL UNIQUE,
-  is_admin BOOLEAN NOT NULL default 't',
+  is_admin BOOLEAN NOT NULL default 'f',
   is_confirmed BOOLEAN NOT NULL default 'f',
   auth_type TEXT NOT NULL DEFAULT 'classic',
   created_at TIMESTAMP NOT NULL,

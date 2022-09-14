@@ -2,7 +2,7 @@ table! {
     bookings (id) {
         id -> Uuid,
         booked_at -> Timestamp,
-        booked_by -> Int4,
+        booked_by -> Nullable<Int4>,
         created_at -> Timestamp,
     }
 }
