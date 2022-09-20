@@ -1,6 +1,7 @@
 use actix_session::{SessionGetError, SessionInsertError};
 use actix_web::{http::StatusCode, HttpResponse, ResponseError as ActixError};
 use diesel::result::Error as DieselError;
+use reqwest::Error as ReqwestError;
 use serde::Deserialize;
 use serde_json::json;
 use std::{borrow::Cow, fmt::Display};
@@ -58,6 +59,12 @@ impl From<ValidationError> for CustomError {
 impl From<SessionInsertError> for CustomError {
     fn from(error: SessionInsertError) -> Self {
         CustomError::new(401, format!("Session insert error: {}", error).as_str())
+    }
+}
+
+impl From<ReqwestError> for CustomError {
+    fn from(error: ReqwestError) -> Self {
+        CustomError::new(400, format!("Session insert error: {}", error).as_str())
     }
 }
 

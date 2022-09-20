@@ -247,7 +247,7 @@ impl User {
         Ok(true)
     }
 
-    pub fn login(session: Session, credentials: Credentials) -> Result<User, CustomError> {
+    pub fn login(session: &Session, credentials: Credentials) -> Result<User, CustomError> {
         let conn = connection()?;
 
         let user = users::table
@@ -297,5 +297,14 @@ impl User {
         }
 
         Ok(())
+    }
+
+    pub fn get_email(user_id: i32) -> Result<String, CustomError> {
+        let conn = connection()?;
+
+        Ok(users::table
+            .select(users::email)
+            .find(user_id)
+            .first(&conn)?)
     }
 }

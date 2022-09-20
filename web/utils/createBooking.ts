@@ -2,7 +2,7 @@
 
 type CreateBookingInput = {
     date: string,
-    user_id: number
+    lesson_type: string
 }
 
 const createBooking = async (input: CreateBookingInput): Promise<Response> => {

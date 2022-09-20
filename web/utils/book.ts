@@ -1,6 +1,6 @@
 
 type BookProps = {
-    booking_id: number
+    booking_id: number,
 }
 
 const book = async (input: BookProps): Promise<Response> => {

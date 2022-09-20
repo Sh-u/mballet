@@ -127,8 +127,8 @@ pub async fn login(
         ));
     }
 
-    User::login(session, credentials.into_inner())?;
-
+    User::login(&session, credentials.into_inner())?;
+    session.renew();
     Ok(HttpResponse::Ok().finish())
 }
 
@@ -167,7 +167,7 @@ pub async fn confirm_reset(
 
 #[get("/me")]
 pub async fn me(session: Session) -> Result<HttpResponse, CustomError> {
-    println!("me session: {:#?}", session.entries());
+    println!("me session: {:#?}", session.status());
     let session_user_id = get_current_user(&session)?;
 
     let user = User::get_one(session_user_id)?;

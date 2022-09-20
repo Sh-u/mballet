@@ -2,10 +2,14 @@
 extern crate diesel;
 
 use actix_cors::Cors;
+use actix_session::config::SessionLifecycle;
+use actix_session::config::{PersistentSession, TtlExtensionPolicy};
 use actix_session::{storage::RedisActorSessionStore, SessionMiddleware};
+use actix_web::cookie::time::Duration;
 use actix_web::{cookie::SameSite, http, middleware::Logger, App, HttpServer};
 use bookings::routes::init_routes as BookingsInitRoutes;
 use dotenv::dotenv;
+use futures::AsyncReadExt;
 use listenfd::ListenFd;
 use posts::routes::init_routes as PostsInitRoutes;
 use std::env;
@@ -22,7 +26,7 @@ pub mod users;
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
     db::init();
-
+    const SECS_IN_WEEK: i64 = 60 * 60 * 24 * 7;
     std::env::set_var("RUST_LOG", "debug");
     std::env::set_var("RUST_BACKTRACE", "1");
 
@@ -30,7 +34,9 @@ async fn main() -> std::io::Result<()> {
 
     env_logger::init();
 
-    let private_key = actix_web::cookie::Key::generate();
+    let cookie_key = env::var("COOKIE_KEY").unwrap();
+
+    let private_key = actix_web::cookie::Key::from(cookie_key.as_bytes());
 
     let mut server = HttpServer::new(move || {
         let cors = Cors::default()
@@ -57,6 +63,9 @@ async fn main() -> std::io::Result<()> {
                 .cookie_name("mballet".to_owned())
                 .cookie_same_site(SameSite::None)
                 .cookie_secure(true)
+                .session_lifecycle(SessionLifecycle::PersistentSession(
+                    PersistentSession::default().session_ttl(Duration::seconds(SECS_IN_WEEK)),
+                ))
                 .build(),
             )
             .wrap(cors)

@@ -1,6 +1,8 @@
 table! {
     bookings (id) {
         id -> Uuid,
+        lesson_type -> Nullable<Text>,
+        is_confirmed -> Bool,
         booked_at -> Timestamp,
         booked_by -> Nullable<Int4>,
         created_at -> Timestamp,
@@ -12,6 +14,15 @@ table! {
         id -> Uuid,
         email -> Text,
         expires_at -> Timestamp,
+    }
+}
+
+table! {
+    orders (id) {
+        id -> Uuid,
+        email -> Text,
+        booking_id -> Nullable<Uuid>,
+        created_at -> Timestamp,
     }
 }
 
@@ -41,10 +52,12 @@ table! {
 }
 
 joinable!(bookings -> users (booked_by));
+joinable!(orders -> bookings (booking_id));
 
 allow_tables_to_appear_in_same_query!(
     bookings,
     confirmations,
+    orders,
     posts,
     users,
 );

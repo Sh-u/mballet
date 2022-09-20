@@ -1,15 +1,15 @@
-import { Box, Button, Center, Divider, Grid, Group, Loader, Stack, Text, useMantineTheme, Notification, SimpleGrid } from "@mantine/core";
-import { Calendar, DatePicker, TimeInput } from "@mantine/dates";
-import { useMediaQuery } from "@mantine/hooks";
-import { IconArrowBack, IconCheck } from "@tabler/icons";
+import { Box, Button, Center, Divider, Group, Loader, SimpleGrid, Stack, Text, useMantineTheme } from "@mantine/core";
+import { Calendar } from "@mantine/dates";
+import { IconArrowBack } from "@tabler/icons";
 import dayjs from "dayjs";
 import { useRouter } from "next/router";
-import { CSSProperties, useCallback, useEffect, useRef, useState } from "react";
+import { CSSProperties, useEffect, useState } from "react";
+import useSwr, { useSWRConfig } from 'swr';
 import CreateBooking from "../components/CreateBooking";
 import useAlert, { UseAlertProps } from "../hooks/useAlert";
 import book from "../utils/book";
-import getAllAvailableBookings from "../utils/getAllAvailableBookings";
-
+import getAllAvailableBookingsOfType from "../utils/getAllAvailableBookingsOfType";
+import MapToDbName from "../utils/mapToDbName";
 
 interface TimeButton {
     time: string
@@ -28,63 +28,30 @@ enum AlertState {
     failure
 }
 
-
-
 const bookings = () => {
     const [value, setValue] = useState<any>(null);
-
     const [time, setTime] = useState<TimeButton | null>(null);
-
-    const [bookings, setBookings] = useState<Booking[]>([]);
-
-    const [loading, setLoading] = useState(true);
-
     const [alertInfo, setAlertInfo] = useState<UseAlertProps>({
         type: null,
         message: ""
     });
 
     const alert = useAlert(alertInfo);
-
     const router = useRouter();
+    const { mutate } = useSWRConfig()
 
 
+    const { lesson } = router.query
 
-    const handleSetAlertInfo = (type: AlertState, message: string) => {
-        console.log('handleAlertInfoState')
-        if (alertInfo.type === null) {
-            console.log('setting Alert info', alertInfo)
-            setAlertInfo({
-                type: type,
-                message: message
-            });
+    useEffect(() => {
+        if (router.isReady && lesson !== "OneOnOne") {
+            router.push('/')
         }
-    };
-
-    const handleSubmitBook = async () => {
+    }, [router.isReady])
 
 
-
-        if (!time || !bookings) {
-            handleSetAlertInfo(AlertState.failure, "Booking failed, please select a valid date first.");
-            return;
-        }
-
-        let response = await book({
-            booking_id: bookings[time.index].id as number
-        });
-
-        if (response.status !== 200) {
-            let error = await response.json();
-            handleSetAlertInfo(AlertState.failure, error.message);
-            return;
-        }
-
-        let booking = await response.json();
-        handleSetAlertInfo(AlertState.success, booking.message);
-
-
-    }
+    const [fetchUrl, fetcher] = getAllAvailableBookingsOfType(MapToDbName(lesson as string));
+    const { data: bookings } = useSwr<Booking[], any>(lesson ? fetchUrl : null, fetcher);
 
     useEffect(() => {
 
@@ -102,34 +69,49 @@ const bookings = () => {
     }, [alertInfo])
 
     const theme = useMantineTheme();
-    useEffect(() => {
 
-        const getHours = async () => {
-            const response = await getAllAvailableBookings();
-
-            if (response.status !== 200) {
-                return;
-            }
-            let bookings_response = await response.json();
-
-            setBookings(bookings_response);
-
-
-        }
-
-        getHours().catch(console.error)
-        setLoading(false);
-    }, [])
 
     useEffect(() => {
         setTime(null)
     }, [value])
 
+    const handleSetAlertInfo = (type: AlertState, message: string) => {
+        console.log('handleAlertInfoState')
+        if (alertInfo.type === null) {
+            console.log('setting Alert info', alertInfo)
+            setAlertInfo({
+                type: type,
+                message: message
+            });
+        }
+    };
+
+    const handleSubmitBook = async () => {
+
+        if (!time || !bookings) {
+            handleSetAlertInfo(AlertState.failure, "Booking failed, please select a valid date first.");
+            return;
+        }
+
+        let response = await book({
+            booking_id: bookings[time.index].id as number,
+        });
+
+        if (response.status !== 200) {
+            let error = await response.json();
+            handleSetAlertInfo(AlertState.failure, error.message);
+            return;
+        }
+
+        let booking = await response.json();
+        handleSetAlertInfo(AlertState.success, booking.message);
+    }
 
 
-    if (loading) {
+
+    if (!bookings) {
         return (
-            <Center mt='6rem'>
+            <Center >
                 <Loader size='xl' />
             </Center>
 
@@ -137,28 +119,19 @@ const bookings = () => {
     }
 
 
-
-
     return (
         <>
             <Group mt='2rem' sx={{
                 justifyContent: 'space-evenly',
+                alignItems: 'start',
                 position: 'relative',
-
-
-
-
             }}>
-
-
-
                 <Stack align='start' justify='center' sx={{
                     width: '100%',
                     marginLeft: '0px',
 
                     paddingLeft: '1rem',
                     paddingRight: '1rem',
-
 
                     [`@media (min-width: ${theme.breakpoints.md}px)`]: {
                         width: 800,
@@ -169,14 +142,9 @@ const bookings = () => {
                         paddingLeft: '2rem',
                         paddingRight: '2rem',
                     },
-
-
-
                 }} >
-                    <Button leftIcon={<IconArrowBack />} color='cyan' variant="default" >Back</Button>
+                    <Button leftIcon={<IconArrowBack />} color='cyan' variant="default" onClick={() => router.back()}>Back</Button>
                     <Text size='xl' align="left">London time (GMT +01:00)</Text>
-
-
                     <Calendar
                         value={value}
                         onChange={setValue}
@@ -225,13 +193,14 @@ const bookings = () => {
 
 
                     <SimpleGrid sx={{
-
+                        gridTemplateColumns: 'unset',
                         margin: '0',
                         padding: '0',
                         gap: '16px',
                         gridAutoFlow: 'column',
                         gridTemplateRows: 'repeat(3, auto)',
                         justifyContent: 'start',
+
                     }}>
 
                         {bookings?.map((booking, index) => {
@@ -266,9 +235,6 @@ const bookings = () => {
                             })}>{newTime}</Box >
                             )
                         })}
-
-
-
                     </SimpleGrid >
 
 
@@ -287,7 +253,7 @@ const bookings = () => {
                         border: `1px solid ${theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[2]
                             }`,
                     })}>
-                        <Text size={'xl'} weight='bold'  >1 on 1 Ballet Lesson</Text>
+                        <Text size={'xl'} weight='bold'  >{lesson === "OneOnOne" ? "1 On 1 Ballet Lesson" : null}</Text>
                         <Text size={'md'}  >1hr | 50$</Text>
                         <Divider />
                         <Box >
@@ -305,15 +271,21 @@ const bookings = () => {
                     </Stack>
 
                     <CreateBooking handleAddBooking={(booking) => {
-
-
                         console.log('create booking: ', booking)
-                        const bookings2 = [...bookings, booking].sort((a, b) => {
-                            if (dayjs(a.booked_at).isBefore(b.booked_at)) return -1;
-                            else if (dayjs(a.booked_at).isAfter(b.booked_at)) return 1;
-                            else return 0;
-                        });
-                        setBookings(bookings2);
+                        if (!bookings) {
+                            return;
+                        }
+
+                        mutate(fetchUrl, async () => {
+                            const bookings2 = [...bookings, booking].sort((a, b) => {
+                                if (dayjs(a.booked_at).isBefore(b.booked_at)) return -1;
+                                else if (dayjs(a.booked_at).isAfter(b.booked_at)) return 1;
+                                else return 0;
+                            });
+
+                            return bookings2;
+                        }, { revalidate: false })
+
                     }} handleSetAlertInfo={handleSetAlertInfo} />
                     {alert}
                 </Stack>

@@ -1,7 +1,7 @@
-import { Stack, Button } from "@mantine/core"
+import { Stack, Button, NativeSelect } from "@mantine/core"
 import { DatePicker, TimeInput } from "@mantine/dates"
 import dayjs from "dayjs";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import createBooking from "../utils/createBooking"
 import timezone from "dayjs/plugin/timezone"
 import utc from "dayjs/plugin/utc"
@@ -9,6 +9,7 @@ import 'dayjs/locale/en-gb'
 import { useRouter } from "next/router";
 import { AlertState } from "../hooks/useAlert";
 import me from "../utils/me";
+import MapToDbName from "../utils/mapToDbName";
 
 
 
@@ -24,11 +25,14 @@ interface CreateBookingProps {
 
 }
 
+
+
 const CreateBooking = ({ handleSetAlertInfo, handleAddBooking }: CreateBookingProps) => {
 
 
     const [render, setRender] = useState(false);
     const [date, setDate] = useState<Date | null>(new Date());
+    const selectRef = useRef<HTMLSelectElement>(null);
 
     useEffect(() => {
         const checkAdmin = async () => {
@@ -57,18 +61,26 @@ const CreateBooking = ({ handleSetAlertInfo, handleAddBooking }: CreateBookingPr
     const handleCreatingBooking = async () => {
 
 
+        console.log(selectRef.current?.value)
 
-        if (!date) {
+
+        if (!date || !selectRef.current?.value) {
             handleSetAlertInfo(AlertState.failure, "Creating a booking failed, select a valid date.");
             return;
         }
 
+        let lesson = MapToDbName(selectRef.current?.value);
+        if (!lesson) {
+            handleSetAlertInfo(AlertState.failure, "Creating a booking failed, invalid lesson type.");
+            return;
+        }
 
         let isoDate = dayjs(date).subtract(1, 'hour').format("YYYY-MM-DDTHH:mm:ss[Z]");
 
+
         let response = await createBooking({
             date: isoDate,
-            user_id: 1
+            lesson_type: lesson
         });
 
         if (response.status !== 200) {
@@ -96,6 +108,12 @@ const CreateBooking = ({ handleSetAlertInfo, handleAddBooking }: CreateBookingPr
                     d?.setMinutes(value.getMinutes());
                     setDate(d)
                 }} />
+                <NativeSelect
+                    data={['One On One', 'Online (begginers)', 'Online (intermediate)', 'Private Online']}
+                    placeholder="Pick a lesson type"
+                    label="Lesson Type"
+                    ref={selectRef}
+                />
                 <Button onClick={() => handleCreatingBooking()}>Create</Button>
             </Stack>
         </>
