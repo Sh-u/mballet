@@ -111,8 +111,10 @@ const bookings = () => {
 
     if (!bookings) {
         return (
-            <Center >
-                <Loader size='xl' />
+            <Center sx={{
+                height: '100%'
+            }}>
+                <Loader size='xl' color="gray" variant="dots" />
             </Center>
 
         )
@@ -121,36 +123,46 @@ const bookings = () => {
 
     return (
         <>
-            <Group mt='2rem' sx={{
-                justifyContent: 'space-evenly',
-                alignItems: 'start',
-                position: 'relative',
-            }}>
-                <Stack align='start' justify='center' sx={{
-                    width: '100%',
-                    marginLeft: '0px',
+            <Stack sx={
+                {
+                    maxWidth: '70rem',
+                    padding: '20px'
+                }
+            } mx={'auto'}>
+                <SimpleGrid mt='2rem'
+                    sx={{
+                        gridTemplateRows: 'auto 1fr auto auto',
+                        [`@media (min-width: ${theme.breakpoints.lg}px)`]: {
 
-                    paddingLeft: '1rem',
-                    paddingRight: '1rem',
+                            gridTemplateColumns: '700px 320px',
+                            gridTemplateAreas: '"info info" "calendar checkout" "hour hour"',
+                            gridTemplateRows: 'auto 1fr auto',
+                            gridAutoFlow: 'column',
+                        }
+                    }}
+                >
+                    <Stack sx={{
 
-                    [`@media (min-width: ${theme.breakpoints.md}px)`]: {
-                        width: 800,
-                        padding: 0
-                    },
+                        [`@media (min-width: ${theme.breakpoints.lg}px)`]: {
 
-                    [`@media (min-width: ${theme.breakpoints.xs}px)`]: {
-                        paddingLeft: '2rem',
-                        paddingRight: '2rem',
-                    },
-                }} >
-                    <Button leftIcon={<IconArrowBack />} color='cyan' variant="default" onClick={() => router.back()}>Back</Button>
-                    <Text size='xl' align="left">London time (GMT +01:00)</Text>
+                            gridArea: 'info',
+                        }
+
+                    }}>
+                        <Button sx={{ width: 'fit-content' }} leftIcon={<IconArrowBack />} color='cyan' variant="default" onClick={() => router.back()}>Back</Button>
+                        <Text size='xl' align="left">London time (GMT +01:00)</Text>
+                    </Stack>
+
+
                     <Calendar
                         value={value}
                         onChange={setValue}
                         fullWidth
                         size="xl"
+                        sx={{
 
+                            maxWidth: '700px',
+                        }}
                         dayStyle={(date: Date) => date.getDate() === value?.getDate() ? {
                             backgroundColor: theme.colors.dark[4]
                         } as CSSProperties : {
@@ -190,6 +202,63 @@ const bookings = () => {
                         })}
                     />
 
+                    <Stack sx={{
+                        position: 'relative',
+                        width: '280px',
+                        order: 1,
+
+                        marginLeft: 0,
+                        justifySelf: 'center',
+                        [`@media (min-width: ${theme.breakpoints.lg}px)`]: {
+                            marginLeft: '30px',
+                            gridArea: 'checkout',
+                            justifySelf: 'unset'
+                        },
+
+                    }}>
+                        <Stack p='xl' sx={(theme) => ({
+
+                            border: `1px solid ${theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[2]
+                                }`,
+                        })}>
+                            <Text size={'xl'} weight='bold'  >{lesson === "OneOnOne" ? "1 On 1 Ballet Lesson" : null}</Text>
+                            <Text size={'md'}  >1hr | 50$</Text>
+                            <Divider />
+                            <Box  >
+                                <Text size={'lg'}  >
+                                    {value?.toDateString()}</Text>
+                                <Text size={'lg'} >
+                                    {time?.time}
+                                </Text>
+                            </Box>
+
+                            <Button variant="light" onClick={() => handleSubmitBook()}>Book</Button>
+
+
+
+                        </Stack>
+
+                        <CreateBooking handleAddBooking={(booking) => {
+                            console.log('create booking: ', booking)
+                            if (!bookings) {
+                                return;
+                            }
+
+                            mutate(fetchUrl, async () => {
+                                const bookings2 = [...bookings, booking].sort((a, b) => {
+                                    if (dayjs(a.booked_at).isBefore(b.booked_at)) return -1;
+                                    else if (dayjs(a.booked_at).isAfter(b.booked_at)) return 1;
+                                    else return 0;
+                                });
+
+                                return bookings2;
+                            }, { revalidate: false })
+
+                        }} handleSetAlertInfo={handleSetAlertInfo} />
+                        {alert}
+                    </Stack>
+
+
 
 
                     <SimpleGrid sx={{
@@ -200,6 +269,7 @@ const bookings = () => {
                         gridAutoFlow: 'column',
                         gridTemplateRows: 'repeat(3, auto)',
                         justifyContent: 'start',
+
 
                     }}>
 
@@ -221,7 +291,7 @@ const bookings = () => {
                                 })
 
                             }} key={index} sx={(theme) => ({
-                                width: '150px',
+                                width: '100px',
                                 border: `1px solid ${theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[2]
                                     }`,
                                 padding: theme.spacing.xs,
@@ -231,6 +301,10 @@ const bookings = () => {
                                 '&:hover': {
                                     backgroundColor: theme.colors.dark[4],
                                     color: 'white'
+                                },
+                                [`@media (min-width: ${theme.breakpoints.xs}px)`]: {
+                                    width: '150px',
+
                                 }
                             })}>{newTime}</Box >
                             )
@@ -239,60 +313,11 @@ const bookings = () => {
 
 
 
-                </Stack >
-
-
-                <Stack sx={{
-                    position: 'relative',
 
 
 
-                }}>
-                    <Stack p='xl' sx={(theme) => ({
-
-                        border: `1px solid ${theme.colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[2]
-                            }`,
-                    })}>
-                        <Text size={'xl'} weight='bold'  >{lesson === "OneOnOne" ? "1 On 1 Ballet Lesson" : null}</Text>
-                        <Text size={'md'}  >1hr | 50$</Text>
-                        <Divider />
-                        <Box >
-                            <Text size={'lg'}  >
-                                {value?.toDateString()}</Text>
-                            <Text size={'lg'} >
-                                {time?.time}
-                            </Text>
-                        </Box>
-
-                        <Button variant="light" onClick={() => handleSubmitBook()}>Book</Button>
-
-
-
-                    </Stack>
-
-                    <CreateBooking handleAddBooking={(booking) => {
-                        console.log('create booking: ', booking)
-                        if (!bookings) {
-                            return;
-                        }
-
-                        mutate(fetchUrl, async () => {
-                            const bookings2 = [...bookings, booking].sort((a, b) => {
-                                if (dayjs(a.booked_at).isBefore(b.booked_at)) return -1;
-                                else if (dayjs(a.booked_at).isAfter(b.booked_at)) return 1;
-                                else return 0;
-                            });
-
-                            return bookings2;
-                        }, { revalidate: false })
-
-                    }} handleSetAlertInfo={handleSetAlertInfo} />
-                    {alert}
-                </Stack>
-
-
-            </Group>
-
+                </SimpleGrid>
+            </Stack>
         </>
     );
 }

@@ -1,6 +1,6 @@
 import {
     Anchor, Button,
-    Divider, Group, Loader, Paper, PaperProps, PasswordInput, Stack, Text, TextInput
+    Divider, Group, Loader, Paper, PaperProps, PasswordInput, Stack, Text, TextInput, useMantineTheme
 } from '@mantine/core';
 import { upperFirst, useToggle } from '@mantine/hooks';
 import { useFormik } from 'formik';
@@ -47,7 +47,7 @@ export const AuthenticationForm = (props: AuthenticationFormProps) => {
     const [type, toggle] = useToggle(['login', 'register']);
 
     const router = useRouter();
-
+    const theme = useMantineTheme();
     const handleGoogleClick = async () => {
         let response = await googleInit();
 
@@ -131,7 +131,9 @@ export const AuthenticationForm = (props: AuthenticationFormProps) => {
         },
     });
     return (
-        <Paper radius="md" p="xl"  >
+        <Paper radius="md" p="xl" shadow={'sm'} sx={{
+            backgroundColor: theme.colors.gray[1]
+        }}  >
             <Text size="lg" weight={500}>
                 Welcome to Mballet, {type} with
             </Text>
@@ -208,7 +210,15 @@ export const AuthenticationForm = (props: AuthenticationFormProps) => {
                         </Anchor>
                     </Stack>
 
-                    {formik.isSubmitting ? <Loader /> : <Button type="submit" onClick={async () => formik.submitForm()}>{upperFirst(type)}</Button>}
+                    {formik.isSubmitting ? <Loader /> : <Button sx={{
+                        fontWeight: 'normal',
+                        backgroundColor: theme.colors.dark[6],
+                        '&:hover': {
+                            backgroundColor: theme.colors.gray[1],
+                            border: '1px solid black',
+                            color: theme.colors.dark[6]
+                        }
+                    }} type="submit" onClick={async () => formik.submitForm()}>{upperFirst(type)}</Button>}
 
                 </Group>
             </form>

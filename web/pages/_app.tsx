@@ -2,10 +2,11 @@
 import type { AppProps } from 'next/app';
 import '../styles/globals.css';
 
-import { MantineProvider } from '@mantine/core';
+import { MantineProvider, Title } from '@mantine/core';
 import Head from 'next/head';
 import { RecoilRoot } from "recoil";
-
+import "@fontsource/bebas-neue";
+import "@fontsource/roboto";
 function MyApp({ Component, pageProps }: AppProps) {
 
 
@@ -15,7 +16,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
 
     <Head>
-      <title>Page title</title>
+      <title>Mballet</title>
       <link rel="shortcut icon" href="/favicon.svg" />
       <meta
         name="viewport"
@@ -26,8 +27,37 @@ function MyApp({ Component, pageProps }: AppProps) {
       withGlobalStyles
       withNormalizeCSS
       theme={{
-        /** Put your mantine theme override here */
-        colorScheme: 'dark',
+
+        fontFamily: 'Roboto, sans-serif',
+
+        headings: {
+          fontFamily: 'Bebas Neue, sans-serif',
+
+
+        },
+        colors: {
+          'main': ['#b35642', '#9a3e2a', '#8f4535', '#72372a', '#b14a30']
+        },
+        components: {
+          Text: {
+            defaultProps: {
+              color: 'gray.7',
+
+            }
+          },
+          Title: {
+            defaultProps: {
+              color: 'dark.4'
+            }
+          },
+          Button: {
+            defaultProps: {
+              color: 'dark.6'
+            }
+          }
+        },
+
+        colorScheme: 'light',
         breakpoints: {
           xs: 500,
           sm: 800,
@@ -43,8 +73,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       html,
       body,
       body > div:first-child,
-      div#__next,
-      div#__next > div {
+      div#__next {
         height: 100%;
       }
     `}</style>

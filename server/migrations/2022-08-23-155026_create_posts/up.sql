@@ -4,6 +4,7 @@ CREATE TABLE posts (
     id SERIAL PRIMARY KEY,
     title VARCHAR NOT NULL,
     body VARCHAR NOT NULL,
+    img VARCHAR,
     published BOOLEAN NOT NULL default 'f',
     created_at timestamp NOT NULL,
     updated_at timestamp

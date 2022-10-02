@@ -1,8 +1,9 @@
-import { Button, CloseButton, Divider, Group, Space, Stack, Textarea } from '@mantine/core';
+import { Button, CloseButton, Divider, FileButton, Group, MantineTheme, Space, Stack, Textarea, Text } from '@mantine/core';
+import { IconPhoto } from '@tabler/icons';
 import { Form, Formik } from 'formik';
 import { useState } from 'react';
 import { Post } from '../types';
-import AddPostRequest from '../utils/AddPostRequest';
+import createPost from '../utils/createPost';
 import AddFile from './AddFile';
 
 
@@ -10,90 +11,136 @@ import AddFile from './AddFile';
 interface CreatePostFormProps {
   refreshData: () => void,
   post?: Post
+  theme: MantineTheme
 }
 
-const CreatePostForm = ({ refreshData }: CreatePostFormProps) => {
+const CreatePostForm = ({ refreshData, theme }: CreatePostFormProps) => {
 
   const [open, setOpen] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+
 
 
   return (
 
     <>
-      {open ? (<Stack p={'lg'} mt={'lg'} mx={'auto'} sx={{ maxWidth: '600px', boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px', padding: '6px' }} align="end" spacing={'lg'}>
+      {open ?
+        (<Stack p={'lg'} mt={'lg'} mx={'auto'} sx={{ width: '100%', boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px', padding: '6px' }} align="end" spacing={'lg'}>
+
+          <CloseButton title="closePost" size="md" iconSize={20} onClick={() => setOpen(false)} />
+
+          <Formik
+
+            initialValues={{
+              title: '',
+              body: '',
+              published: true,
 
 
-        <CloseButton title="closePost" size="md" iconSize={20} onClick={() => setOpen(false)} />
+            }}
+
+            onSubmit={async (values, actions) => {
+              if (values.title.length < 3) {
+                actions.setFieldError("title", "The title is too short!");
+                return;
+              }
+              if (values.body.length < 5) {
+                actions.setFieldError("body", "The body is too short!");
+                return;
+              }
+
+              const body = new FormData();
+
+              body.append('title', values.title);
+              body.append('body', values.body);
 
 
-        <Formik
+              body.append('published', 't');
 
-          initialValues={{
-            title: '',
-            body: '',
-            published: true
-          }}
+              if (file) {
+                body.append('image', file);
 
-          onSubmit={async (values, actions) => {
-            if (values.title.length < 3) {
-              actions.setFieldError("title", "The title is too short!");
-              return;
-            }
-            if (values.body.length < 5) {
-              actions.setFieldError("body", "The body is too short!");
-              return;
-            }
-
-            if ((await AddPostRequest(values)).status === 200) {
-
-              actions.setSubmitting(false);
-              actions.setValues({
-                title: '',
-                body: '',
-                published: false
-              })
-              refreshData();
-
-            } else {
-              console.log('error')
-
-              return;
-            }
-          }}
-        >{({ isSubmitting, values, handleChange, errors }) => (
-          <Stack spacing={'xl'} sx={{ width: '100%' }}>
-            <Form >
-
-              <Textarea size='lg' placeholder='Place your title here!' autosize variant='unstyled' value={values.title} onChange={handleChange} aria-label="Title" id='title' name='title' error={errors.title} />
-              <Divider my="lg" />
-              <Textarea size='xl' sx={{ height: '10rem' }} placeholder='What are you thinking about?' autosize variant='unstyled' value={values.body} onChange={handleChange} aria-label="Body" id='body' name='body' error={errors.body} />
-              <Divider my="lg" />
-
-              <Space h='md' />
-
-              <Group position='apart'>
-                <AddFile />
-                {isSubmitting ? <Button disabled>
-                  <span>Create</span>
-                </Button> : <Button type='submit' color="cyan" >
-                  <span>Create</span>
-                </Button>}
-
-
-              </Group>
-            </Form>
-          </Stack>
-        )}
-        </Formik >
+              }
 
 
 
-      </Stack >) : (
-        <Group position='center' mt='lg'>
-          <Button variant="light" color="cyan" size="lg" onClick={() => setOpen(true)}>
-            Create Your Post!
-          </Button>
-        </Group>)
+              if ((await createPost(body)).status === 200) {
+
+                actions.setSubmitting(false);
+                actions.setValues({
+                  title: '',
+                  body: '',
+                  published: false,
+
+                })
+                refreshData();
+
+              } else {
+                console.log('error')
+
+                return;
+              }
+            }}
+          >{({ isSubmitting, values, handleChange, errors }) => (
+            <Stack spacing={'xl'} sx={{ width: '100%' }}>
+              <Form >
+
+                <Textarea size='lg' placeholder='Place your title here!' autosize variant='unstyled' value={values.title} onChange={handleChange} aria-label="Title" id='title' name='title' error={errors.title} />
+                <Divider my="lg" sx={{
+                  margin: '0 !important'
+                }} />
+                <Textarea size='lg' sx={{ height: '50%' }} placeholder='Place post content here!' autosize variant='unstyled' value={values.body} onChange={handleChange} aria-label="Body" id='body' name='body' error={errors.body} />
+                <Divider my="lg" sx={{
+                  margin: '0 !important'
+                }} />
+
+                <Space h='md' />
+
+                <Group position='apart'>
+
+                  <FileButton onChange={setFile} accept="image/png,image/jpeg">
+                    {(props) => <IconPhoto size={32} cursor='pointer' {...props}>Upload image</IconPhoto>}
+                  </FileButton>
+
+                  {file && (
+                    <Text size="sm" align="center" >
+                      Picked file: {file.name}
+                    </Text>
+                  )}
+                  {isSubmitting ? <Button disabled>
+                    <span>Create</span>
+                  </Button> : <Button type='submit' sx={{
+                    backgroundColor: theme.colors.dark[6],
+
+                    '&:hover': {
+                      backgroundColor: 'unset',
+                      border: '1px solid black',
+                      color: theme.colors.dark[6]
+                    }
+                  }} >
+                    <span>Create</span>
+                  </Button>}
+
+
+                </Group>
+              </Form>
+            </Stack>
+          )}
+          </Formik >
+
+
+
+        </Stack >) : (
+          <Group position='center' mt='lg'>
+            <Button onClick={() => setOpen(true)} sx={{
+              backgroundColor: theme.colors.dark[6],
+              '&:hover': {
+                backgroundColor: 'unset',
+                border: '1px solid black',
+                color: theme.colors.dark[6]
+              }
+            }}>Create Post</Button>
+          </Group>)
       }
 
 

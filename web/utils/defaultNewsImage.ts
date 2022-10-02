@@ -1,0 +1,1 @@
+export const defaultNewsImage = 'https://i.imgur.com/bWMapTD.jpg';

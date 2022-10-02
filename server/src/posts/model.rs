@@ -1,3 +1,4 @@
+use actix_web::web::{Bytes, Payload};
 use chrono::prelude::Utc;
 
 use diesel::prelude::*;
@@ -13,6 +14,7 @@ pub struct Post {
     pub id: i32,
     pub title: String,
     pub body: String,
+    pub img: Option<String>,
     pub published: bool,
     pub created_at: chrono::NaiveDateTime,
     pub updated_at: Option<chrono::NaiveDateTime>,
@@ -23,46 +25,55 @@ pub struct PostsRequestBody {
     pub title: String,
     pub body: String,
     pub published: bool,
+    pub img: Option<String>,
 }
 
-impl PostsRequestBody {
-    pub fn from(post: PostsRequestBody) -> Self {
-        PostsRequestBody {
-            title: post.title,
-            body: post.body,
-            published: post.published,
-        }
-    }
-}
+// impl PostsRequestBody {
+//     pub fn from(post: PostsRequestBody) -> Self {
+//         PostsRequestBody {
+//             title: post.title,
+//             body: post.body,
+//             published: post.published,
+//             image: post.image,
+//         }
+//     }
+// }
 
 #[derive(Serialize, Deserialize, AsChangeset, Insertable)]
 #[table_name = "posts"]
 pub struct NewPost {
     pub title: String,
     pub body: String,
+    pub img: Option<String>,
     pub published: bool,
     pub created_at: chrono::NaiveDateTime,
     pub updated_at: Option<chrono::NaiveDateTime>,
 }
 
-impl NewPost {
-    pub fn from(new_post: NewPost) -> NewPost {
-        NewPost {
-            title: new_post.title,
-            body: new_post.body,
-            published: new_post.published,
-            created_at: Utc::now().naive_utc(),
-            updated_at: Some(Utc::now().naive_utc()),
-        }
-    }
-}
+// impl NewPost {
+//     pub fn from(new_post: NewPost) -> NewPost {
+//         NewPost {
+//             title: new_post.title,
+//             body: new_post.body,
+//             published: new_post.published,
+//             created_at: Utc::now().naive_utc(),
+//             updated_at: Some(Utc::now().naive_utc()),
+//         }
+//     }
+// }
 
 impl Post {
-    pub fn create(req_body: PostsRequestBody) -> Result<Self, CustomError> {
+    pub fn create(
+        title: String,
+        body: String,
+        published: bool,
+        img: Option<String>,
+    ) -> Result<Self, CustomError> {
         let post = NewPost {
-            title: req_body.title,
-            body: req_body.body,
-            published: req_body.published,
+            title: title,
+            body: body,
+            img: img,
+            published: published,
             created_at: Utc::now().naive_utc(),
             updated_at: Some(Utc::now().naive_utc()),
         };
@@ -108,9 +119,15 @@ impl Post {
             _ => old_post.body,
         };
 
+        let i = match req_body.img.is_some() {
+            true => req_body.img,
+            _ => old_post.img,
+        };
+
         let values = NewPost {
             title: t,
             body: b,
+            img: i,
             published: req_body.published,
             created_at: old_post.created_at,
             updated_at: Some(Utc::now().naive_utc()),

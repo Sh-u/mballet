@@ -2,7 +2,9 @@ export type Posts = {
   id: number;
   title: string;
   body: string;
+  img?: string,
   published: boolean;
+  created_at: string;
 }
 
 export type Post = {

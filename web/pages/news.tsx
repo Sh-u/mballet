@@ -8,8 +8,12 @@ import { PlusCircleIcon, DotsHorizontalIcon } from '@heroicons/react/solid'
 import { useEffect, useState } from 'react';
 import PostDropdown from '../components/PostDropdown';
 import EditPostModal from '../components/EditPostModal';
-import { Button, Center, Group, Modal, Stack, Title } from '@mantine/core';
-
+import { Button, Center, Group, Modal, SimpleGrid, Stack, Title, Text, useMantineTheme, Skeleton, Box, Image, Anchor } from '@mantine/core';
+import NewsCardPreview from '../components/NewsCardPreview';
+import Navbar from '../components/Navbar';
+import dayjs from "dayjs";
+import Footer from '../components/Footer';
+import { IconPencil, IconTrash } from '@tabler/icons';
 interface UpdateIconProps {
     postId: number,
     newPost: Post,
@@ -49,44 +53,84 @@ const News = ({ posts }: InferGetStaticPropsType<typeof getStaticProps>) => {
         router.replace(router.asPath);
     }
     const [opened, setOpened] = useState(false);
-
+    const theme = useMantineTheme();
     const clicker = (event: any) => {
         console.log('Clicked Item : ', event.currentTarget);
     }
 
+    const [open, setOpen] = useState(false);
+
+
     return (
         <>
 
+            {/* <Navbar theme={theme} /> */}
+
+            {(
+                <Group position='apart' sx={{
+                    maxWidth: '70rem',
+                    marginTop: '20px',
+                    marginLeft: 'auto',
+                    marginRight: 'auto',
+                }}>
+                    <Stack>
+                        <Title >LATEST NEWS AND EVENTS</Title>
+                        <Text>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</Text>
+                    </Stack>
+                    <CreatePostForm refreshData={refreshData} theme={theme} />
+                </Group>
+
+            )}
+
+            <Group mt='20px' sx={{
+                maxWidth: '70rem',
+                margin: 'auto',
+                flexWrap: 'wrap'
+            }}>
+                {posts.length > 0 ? posts.map((p) => (
+
+                    <Stack sx={{
+                        width: '100%'
+                    }}>
+                        <Group>
+                            <Image width={260} height={160} src={p?.img?.split("public/").pop() ?? 'https://i.imgur.com/bWMapTD.jpg'} alt='xddd' />
+                            <Stack sx={{
+                                gap: '10px'
+                            }}>
+                                <Group>
+                                    <Title order={3}>{p.title}</Title>
+                                    <IconPencil size={16} />
+                                    <IconTrash size={16} />
+
+                                </Group>
+
+                                <Text>{p.body}</Text>
+                                <Text >{dayjs(p.created_at).format('DD/MM/YYYY')}</Text>
+
+                                <Anchor href={`/news/${p.id}`}>Read More</Anchor>
+                            </Stack>
+                        </Group>
+                    </Stack>
 
 
-            {posts.length < 1 ? (<Center style={{ marginTop: 10 }}  ><Title order={1}>There is nothing interesting here yet...</Title></Center>) : null}
+                )) : (
+                    <>
 
+                        <Center sx={{
+                            height: '100%'
+                        }}>
+                            <Title>There are no posts created yet...</Title>
+                        </Center>
 
-            <CreatePostForm refreshData={refreshData} />
+                    </>
+                )}
 
-
-            <Stack align={'center'} mt='lg'>
-                {posts.map((post, key) => (
-                    <div className='mt-2 w-1/3 bg-gray-500  relative' key={key}>
-
-                        <PostDropdown />
-                        <div className='flex justify-center items-center  bg-gray-600'>
-                            <div className='p-5  text-3xl font-semibold'>{post.body}</div>
-                        </div>
-
-                        <div className='flex flex-col p-2'>
-                            <div className=''>x days ago at X PM</div>
-                            <div className=' text-5xl'>{post.title}</div>
-                            <div className='  text-xl font-extralight'>Random description</div>
-
-                        </div>
-
-                        <EditPostModal postId={post.id} refreshData={refreshData} post={post} />
-                        <DeleteModal postId={post.id} refreshData={refreshData} />
-
-                    </div>
-                ))}
-            </Stack>
+            </Group>
+            <Box mt='30px' sx={{
+                backgroundColor: theme.colors.gray[1]
+            }}>
+                <Footer theme={theme} />
+            </Box>
 
         </>
     )

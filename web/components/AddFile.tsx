@@ -1,24 +1,21 @@
 import { Group, FileButton, Button, Text } from "@mantine/core";
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { IconPhoto } from "@tabler/icons"
 
-const AddFile = () => {
+interface AddFileProps {
+    file: File | null,
+    setFile: Dispatch<SetStateAction<File | null>>,
+}
 
-    const [file, setFile] = useState<File | null>(null);
+const AddFile = ({ file, setFile }: AddFileProps) => {
+
+
     return (
         <>
 
 
 
-            <FileButton onChange={setFile} accept="image/png,image/jpeg">
-                {(props) => <IconPhoto size={32} cursor='pointer' {...props}>Upload image</IconPhoto>}
-            </FileButton>
 
-            {file && (
-                <Text size="sm" align="center" >
-                    Picked file: {file.name}
-                </Text>
-            )}
         </>
     );
 }

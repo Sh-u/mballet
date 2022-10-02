@@ -33,3 +33,6 @@ validator = { version = "0.12", features = ["derive"] }
 log = "0.4.17"
 futures = "0.3.24"
 base64 = "0.13.0"
+chunked_transfer = "1.4.0"
+actix-multipart = "0.4.0"
+futures-util = "0.3.24"
