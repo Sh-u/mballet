@@ -104,6 +104,29 @@ pub struct NewUser {
     pub updated_at: Option<chrono::NaiveDateTime>,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct MeResponse {
+    pub id: i32,
+    pub username: String,
+    pub email: String,
+    pub img: Option<String>,
+    pub is_admin: bool,
+    pub is_confirmed: bool,
+}
+
+impl MeResponse {
+    pub fn from(user: User) -> MeResponse {
+        MeResponse {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            img: user.img,
+            is_admin: user.is_admin,
+            is_confirmed: user.is_confirmed,
+        }
+    }
+}
+
 impl<T> From<T> for Confirmation
 where
     T: Into<String> + Clone,
@@ -157,8 +180,11 @@ impl User {
             password: hash_password(input.password.as_str())?,
             email: input.email.to_owned(),
             img: None,
-            is_admin: false,
-            is_confirmed: false,
+            is_admin: true,
+            is_confirmed: match &input.auth_type as &str {
+                "GOOGLE" => true,
+                _ => false,
+            },
             auth_type: input.auth_type,
             created_at: Utc::now().naive_utc(),
             updated_at: Some(Utc::now().naive_utc()),

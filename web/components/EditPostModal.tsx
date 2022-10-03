@@ -1,22 +1,35 @@
-import { Button, Group, Modal, Space, Stack, Textarea } from '@mantine/core';
+import { Button, Divider, FileButton, Group, Modal, Space, Stack, Textarea, Text, MantineTheme } from '@mantine/core';
+import { IconPhoto } from '@tabler/icons';
 
 import { Form, Formik } from 'formik';
+import { useState } from 'react';
 import { useRecoilState } from 'recoil';
 import { editModalAtom } from '../atoms/editModalAtom';
-import { DropdownProps } from '../types';
-import UpdatePostRequest from '../utils/UpdatePostRequest';
+import { DropdownProps, Posts } from '../types';
+import updatePost from '../utils/updatePost';
+
+interface EditPostModalProps {
+
+    refreshData: () => void,
+    editModalOpen: boolean,
+    setEditModalOpen: (v: boolean) => void,
+    post: Posts,
+    theme: MantineTheme
+
+}
+
+const EditPostModal = ({ refreshData, post, editModalOpen, setEditModalOpen, theme }: EditPostModalProps) => {
 
 
-const EditPostModal = ({ postId, refreshData, post }: DropdownProps) => {
 
+    const [file, setFile] = useState<File | null>(null);
 
-
-    const [editModalOpen, setEditModalOpen] = useRecoilState(editModalAtom);
-
+    console.log(post.id)
     return (
 
         <>
             <Modal
+                overlayOpacity={0.2}
                 opened={editModalOpen}
                 onClose={() => setEditModalOpen(false)}
 
@@ -42,10 +55,21 @@ const EditPostModal = ({ postId, refreshData, post }: DropdownProps) => {
                             actions.setFieldError("body", "The body is too short!");
                             return;
                         }
-                        console.log('here', postId)
 
-                        console.log((await UpdatePostRequest(postId, values)).status);
-                        if ((await UpdatePostRequest(postId, values)).status === 200) {
+                        const body = new FormData();
+
+                        body.append('title', values.title);
+                        body.append('body', values.body);
+                        body.append('published', 't');
+
+                        if (file) {
+                            body.append('image', file);
+
+                        }
+
+
+
+                        if ((await updatePost(post.id, body)).status === 200) {
                             console.log('success')
 
                             actions.setSubmitting(false);
@@ -58,8 +82,6 @@ const EditPostModal = ({ postId, refreshData, post }: DropdownProps) => {
 
                         } else {
                             console.log('error')
-
-
                             return;
                         }
                     }}
@@ -67,27 +89,42 @@ const EditPostModal = ({ postId, refreshData, post }: DropdownProps) => {
                 >{({ isSubmitting, errors, values, handleChange }) => (
 
 
-                    <Stack spacing={'xl'}>
+                    <Stack spacing={'xl'} sx={{ width: '100%' }}>
                         <Form >
 
-                            <Textarea value={values.title} onChange={handleChange} label="Title" id='title' name='title' error={errors.title} />
-
-
-                            <Textarea value={values.body} onChange={handleChange} label="Body" id='body' name='body' error={errors.body} />
+                            <Textarea size='lg' placeholder='Place your title here!' autosize variant='unstyled' value={values.title} onChange={handleChange} aria-label="Title" id='title' name='title' error={errors.title} />
+                            <Divider my="lg" sx={{
+                                margin: '0 !important'
+                            }} />
+                            <Textarea size='lg' sx={{ height: '50%' }} placeholder='Place post content here!' autosize variant='unstyled' value={values.body} onChange={handleChange} aria-label="Body" id='body' name='body' error={errors.body} />
+                            <Divider my="lg" sx={{
+                                margin: '0 !important'
+                            }} />
 
                             <Space h='md' />
-                            <Group position='right'>
-                                <Button
 
-                                    color="red"
-                                    onClick={() => setEditModalOpen(false)}
+                            <Group position='apart'>
 
-                                >
-                                    <span>Cancel</span>
-                                </Button>
+                                <FileButton onChange={setFile} accept="image/png,image/jpeg">
+                                    {(props) => <IconPhoto size={32} cursor='pointer' {...props}>Upload image</IconPhoto>}
+                                </FileButton>
+
+                                {file && (
+                                    <Text size="sm" align="center" >
+                                        Picked file: {file.name}
+                                    </Text>
+                                )}
                                 {isSubmitting ? <Button disabled>
-                                    <span>Update</span>
-                                </Button> : <Button type='submit' color="cyan" >
+                                    <span>Create</span>
+                                </Button> : <Button type='submit' sx={{
+                                    backgroundColor: theme.colors.dark[6],
+
+                                    '&:hover': {
+                                        backgroundColor: 'unset',
+                                        border: '1px solid black',
+                                        color: theme.colors.dark[6]
+                                    }
+                                }} >
                                     <span>Update</span>
                                 </Button>}
 

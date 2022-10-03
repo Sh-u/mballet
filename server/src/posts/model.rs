@@ -93,7 +93,9 @@ impl Post {
 
     pub fn get_all() -> Result<Vec<Self>, CustomError> {
         let conn = connection()?;
-        let posts = posts::table.load::<Post>(&conn)?;
+        let posts = posts::table
+            .order(posts::created_at.desc())
+            .load::<Post>(&conn)?;
 
         Ok(posts)
     }

@@ -7,7 +7,7 @@ use crate::{
         auth_utils::{get_current_user, is_signed_in, set_current_user},
         model::{
             Confirmation, GoogleParams, GoogleRedirectCode, GoogleTokenResponse,
-            GoogleUserInfoResponse, MailInfo, ResetPassword, User,
+            GoogleUserInfoResponse, MailInfo, MeResponse, ResetPassword, User,
         },
         register_handler::{create_confirmation, RegisterData},
     },
@@ -167,12 +167,11 @@ pub async fn confirm_reset(
 
 #[get("/me")]
 pub async fn me(session: Session) -> Result<HttpResponse, CustomError> {
-    println!("me session: {:#?}", session.status());
     let session_user_id = get_current_user(&session)?;
 
     let user = User::get_one(session_user_id)?;
 
-    Ok(HttpResponse::Ok().json(user))
+    Ok(HttpResponse::Ok().json(MeResponse::from(user)))
 }
 
 #[post("/logout")]

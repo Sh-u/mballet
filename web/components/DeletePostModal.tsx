@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { DropdownProps } from "../types";
-import RemovePostRequest from "../utils/RemovePostRequest";
+import deletePost from "../utils/deletePost";
 import { TrashIcon } from "@heroicons/react/solid";
 import { Button, Divider, Group, Modal, Text } from "@mantine/core";
 import { deleteModalAtom } from "../atoms/deleteModalAtom";
@@ -11,7 +11,7 @@ const DeleteModal = ({ postId, refreshData, }: DropdownProps) => {
 
 
     const handleRemovingPost = async () => {
-        if ((await (await RemovePostRequest(postId)).status !== 200)) {
+        if ((await (await deletePost(postId)).status !== 200)) {
             console.log('deleting error')
             return;
         }
