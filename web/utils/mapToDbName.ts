@@ -5,12 +5,12 @@ const MapToDbName = (input: string) => {
             return "One_On_One";
         case "OneOnOne":
             return "One_On_One";
-        case "Online (beginners)":
-            return "Online_Beginners";
-        case "OnlineBeginners":
-            return "Online_Beginners";
-        case "Online (intermediate)":
-            return "Online_Intermediate";
+        case "Beginners (Online)":
+            return "Beginners_Online";
+        case "BeginnersOnline":
+            return "Beginners_Online";
+        case "Intermediate (Online)":
+            return "Intermediate_Online";
         case "Private Online":
             return "Private_Online";
         default:

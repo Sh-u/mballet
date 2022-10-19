@@ -1,202 +1,260 @@
-import { Group, Title, Anchor, Menu, Stack, Box, Image, Text, MantineTheme, Avatar } from "@mantine/core"
-import { IconBrandFacebook, IconBrandInstagram, IconMenu2 } from "@tabler/icons"
+import {
+  Anchor,
+  Box,
+  Group,
+  Image,
+  MantineTheme,
+  Menu,
+  NavLink,
+  Stack,
+} from "@mantine/core";
+import { IconChevronDown, IconMenu2, IconX } from "@tabler/icons";
 import { useEffect, useState } from "react";
+import { FaFacebook, FaInstagram } from "react-icons/fa";
 import logout from "../utils/logout";
 import me from "../utils/me";
-
-import MainPageAnchor from "./MainPageAnchor"
+import Link from "next/link";
+import MainPageAnchor from "./MainPageAnchor";
 
 interface NavbarProps {
-    theme: MantineTheme
+  theme: MantineTheme;
 }
 
 const Navbar = ({ theme }: NavbarProps) => {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [logged, setLogged] = useState(false);
+  const [profileMenu, setProfileMenu] = useState(false);
 
-    const [menuOpen, setMenuOpen] = useState(false);
-    const [logged, setLogged] = useState(false);
+  useEffect(() => {
+    const checkMe = async () => {
+      const response = await me();
 
-    useEffect(() => {
+      if (response.status !== 200) {
+      } else {
+        setLogged(true);
+      }
+    };
 
-        const checkMe = async () => {
-            const response = await me();
+    checkMe().catch(console.error);
+  }, []);
 
-            if (response.status !== 200) {
+  const handleLogout = async () => {
+    let response = await logout();
 
-            } else {
-                setLogged(true)
-
-            }
-
-        }
-
-        checkMe().catch(console.error)
-
-    }, [])
-
-    const handleLogout = async () => {
-        let response = await logout();
-
-        if (response.status !== 200) {
-            return;
-        }
-        setLogged(false)
-
-        console.log('logout')
+    if (response.status !== 200) {
+      return;
     }
+    setLogged(false);
 
-    return (
-        <>
-            <Box sx={{
-                display: 'grid',
-                maxHeight: '80px',
-                marginTop: '10px',
+    console.log("logout");
+  };
 
-                paddingLeft: '20px',
-                paddingRight: '20px',
-                gridTemplateColumns: '50% 50%',
-                [`@media (min-width: ${theme.breakpoints.lg}px)`]: {
-                    // paddingLeft: '50px',
-                    // paddingRight: '50px',
-                    width: '100%',
-                    padding: 0,
-                    gridTemplateColumns: '20% 1fr 15%',
-                    maxWidth: '70rem',
-                    marginLeft: 'auto',
-                    marginRight: 'auto',
+  return (
+    <>
+      <Box
+        sx={{
+          display: "grid",
+          maxHeight: "80px",
+          marginTop: "10px",
+          paddingLeft: "20px",
+          paddingRight: "20px",
+          gridTemplateColumns: "50% 50%",
+          [`@media (min-width: ${theme.breakpoints.lg}px)`]: {
+            width: "100%",
+            padding: 0,
+            gridTemplateColumns: "20% 1fr 15%",
+            maxWidth: "70rem",
+            marginLeft: "auto",
+            marginRight: "auto",
+          },
+        }}
+      >
+        <Group
+          position="left"
+          sx={{
+            gap: "0",
+          }}
+        >
+          <Image
+            src="https://i.imgur.com/L2fSEaN.png"
+            alt="logo"
+            width={80}
+            height={80}
+            sx={{
+              [`@media (min-width: ${theme.breakpoints.lg}px)`]: {
+                maxWidth: "80px",
+                maxHeight: "80px",
+              },
+            }}
+          >
+            Logo
+          </Image>
+        </Group>
 
-                }
-            }}>
+        <Group
+          sx={{
+            fontSize: "16px",
+            justifyContent: "end",
+            display: "none",
+            zIndex: 1,
+            [`@media (min-width: ${theme.breakpoints.lg}px)`]: {
+              display: "flex",
+            },
+          }}
+        >
+          <Link href="/">
+            <Anchor component="a" p="15px">
+              Home
+            </Anchor>
+          </Link>
 
-                <Group position='left' sx={{
-                    gap: '0'
-                }}>
-                    <Image src="https://i.imgur.com/L2fSEaN.png" alt='logo' width={80} height={80} sx={{
+          <Link href="/aboutus">
+            <Anchor component="a" p="15px">
+              About Us
+            </Anchor>
+          </Link>
 
+          <Link href="/classes">
+            <Anchor component="a" p="15px">
+              Classes
+            </Anchor>
+          </Link>
 
-                        [`@media (min-width: ${theme.breakpoints.lg}px)`]: {
+          <Link href="/news">
+            <Anchor component="a" p="15px">
+              News
+            </Anchor>
+          </Link>
 
-                            maxWidth: '80px',
-                            maxHeight: '80px',
-
-                        }
-
-                    }}>Logo</Image>
-                    {/* <Title order={2} sx={{
-                        fontWeight: 'bold',
-                        letterSpacing: '1.3px',
-                        fontSize: '19px',
-                        zIndex: 1,
-                        [`@media (min-width: ${theme.breakpoints.lg}px)`]: {
-                            fontSize: '26px'
-                        }
-                    }}>MBALLET</Title> */}
-                </Group>
-
-                <Group sx={{
-                    fontSize: '18px',
-                    justifyContent: 'end',
-                    display: 'none',
-                    zIndex: 1,
-                    [`@media (min-width: ${theme.breakpoints.lg}px)`]: {
-                        display: 'flex'
-                    },
-
-                }}>
-                    <Anchor href='#home' variant='text' sx={{
-
-                        '&:hover': {
-                            color: theme.colors.main[1]
-                        }
-                    }}>Home</Anchor>
-                    <Anchor href='#aboutUs' variant='text' sx={{
-
-                        '&:hover': {
-                            color: theme.colors.main[1]
-                        }
-                    }}>About Us</Anchor>
-                    <Anchor href='#classes' variant='text' sx={{
-
-                        '&:hover': {
-                            color: theme.colors.main[1]
-                        }
-                    }}>Classes</Anchor>
-                    <Anchor href='#testimonials' variant='text' sx={{
-
-                        '&:hover': {
-                            color: theme.colors.main[1]
-                        }
-                    }}>Testimonials</Anchor>
-                    {logged ? <Avatar sx={{
-                        cursor: 'pointer'
-                    }} size='lg' radius='xl' /> : <Anchor href='/login' variant='text' sx={{
-
-                        '&:hover': {
-                            color: theme.colors.main[1]
-                        }
-                    }}>Sign in</Anchor>}
-
-                </Group>
-
-                <Group sx={{
-                    justifyContent: 'end',
-                    fontWeight: 'normal',
-                    alignContent: 'center',
-                    display: 'none',
-                    zIndex: 1,
-                    [`@media (min-width: ${theme.breakpoints.lg}px)`]: {
-                        display: 'flex'
-                    }
-                }}>
-
-                    <IconBrandFacebook cursor={'pointer'} />
-                    <IconBrandInstagram cursor={'pointer'} />
-                </Group>
-
-                <Menu opened={menuOpen} onChange={setMenuOpen} zIndex={1} width={'100%'}
-                    styles={{
-                    }}
+          {logged ? (
+            <Menu opened={profileMenu} onChange={setProfileMenu}>
+              <Menu.Target>
+                <Group
+                  p="15px"
+                  sx={{
+                    gap: "5px",
+                    cursor: "pointer",
+                  }}
                 >
-                    <Menu.Target>
-                        <Box sx={{
-                            display: 'flex',
-                            justifyContent: 'end',
-                            alignItems: 'center',
-                            zIndex: 1,
-                            [`@media (min-width: ${theme.breakpoints.lg}px)`]: {
-                                display: 'none'
-                            }
-                        }}>
-                            <IconMenu2 size={40} />
-                        </Box>
-                    </Menu.Target>
+                  <Anchor variant="text">Profile</Anchor>
+                  <IconChevronDown size={16} />
+                </Group>
+              </Menu.Target>
+              <Menu.Dropdown
+                sx={{
+                  border: "unset",
+                }}
+              >
+                <Link href="/profile">
+                  <Menu.Item component="a">Your Bookings</Menu.Item>
+                </Link>
+                <Menu.Item onClick={() => handleLogout()}>Logout</Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
+          ) : (
+            <Link href="/login">
+              <Anchor component="a" p="15px">
+                Sign in
+              </Anchor>
+            </Link>
+          )}
+        </Group>
 
-                    <Menu.Dropdown sx={{
-                        padding: 0,
-                        backgroundColor: theme.colors.dark[6],
-                        fontWeight: 'bold'
+        <Group
+          sx={{
+            justifyContent: "end",
+            fontWeight: "normal",
+            alignContent: "center",
+            display: "none",
+            zIndex: 1,
+            [`@media (min-width: ${theme.breakpoints.lg}px)`]: {
+              display: "flex",
+            },
+          }}
+        >
+          <FaFacebook cursor={"pointer"} size={18} />
+          <FaInstagram cursor={"pointer"} size={18} />
+        </Group>
 
-                    }} >
-                        <Stack onClick={() => setMenuOpen(!menuOpen)} sx={{
-                            gap: 0
-                        }} >
-
-                            <MainPageAnchor href='#home' theme={theme}>Home</MainPageAnchor>
-                            <MainPageAnchor href='#aboutUs' theme={theme}>About Us</MainPageAnchor>
-                            <MainPageAnchor href='#classes' theme={theme}>Classes</MainPageAnchor>
-                            <MainPageAnchor href='#testimonials' theme={theme}>Testimonials</MainPageAnchor>
-
-                        </Stack>
-
-                    </Menu.Dropdown>
-
-                </Menu>
-
-
+        <Menu
+          opened={menuOpen}
+          onChange={setMenuOpen}
+          zIndex={1}
+          width={"100%"}
+          styles={{}}
+          closeOnItemClick={false}
+        >
+          <Menu.Target>
+            <Box
+              sx={{
+                cursor: "pointer",
+                display: "flex",
+                justifyContent: "end",
+                alignItems: "center",
+                zIndex: 1,
+                [`@media (min-width: ${theme.breakpoints.lg}px)`]: {
+                  display: "none",
+                },
+              }}
+            >
+              {menuOpen ? <IconX size={40} /> : <IconMenu2 size={40} />}
             </Box>
+          </Menu.Target>
 
-        </>
-    )
-}
+          <Menu.Dropdown
+            sx={{
+              padding: 0,
+              backgroundColor: theme.colors.dark[6],
+              fontWeight: "bold",
+            }}
+          >
+            <Stack
+              sx={{
+                gap: 0,
+              }}
+            >
+              <MainPageAnchor href="/" theme={theme}>
+                Home
+              </MainPageAnchor>
+              <MainPageAnchor href="/aboutus" theme={theme}>
+                About Us
+              </MainPageAnchor>
+              <MainPageAnchor href="/classes" theme={theme}>
+                Classes
+              </MainPageAnchor>
+              <MainPageAnchor href="/news" theme={theme}>
+                News
+              </MainPageAnchor>
+              {logged ? (
+                <NavLink label="Profile" childrenOffset={28}>
+                  <Link href={"/profile"} passHref>
+                    <NavLink
+                      label="Your Bookings"
+                      sx={{
+                        paddingLeft: "20px",
+                      }}
+                    />
+                  </Link>
 
+                  <NavLink
+                    onClick={() => handleLogout()}
+                    label="Logout"
+                    sx={{
+                      paddingLeft: "20px",
+                    }}
+                  />
+                </NavLink>
+              ) : (
+                <MainPageAnchor href="/login" theme={theme}>
+                  Sign in
+                </MainPageAnchor>
+              )}
+            </Stack>
+          </Menu.Dropdown>
+        </Menu>
+      </Box>
+    </>
+  );
+};
 
-export default Navbar
+export default Navbar;

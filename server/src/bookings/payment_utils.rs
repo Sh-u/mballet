@@ -9,17 +9,50 @@ use std::env;
 use super::model::{LessonType, Order};
 
 #[derive(Serialize, Deserialize)]
-pub struct PaypalLinks {
+pub struct PaypalCreateOrderResponse {
+    pub id: String,
+    status: String,
+    // purchase_units: Vec<PurchaseUnit>,
+    links: Vec<PaypalLink>,
+    create_time: Option<String>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct PaypalLink {
     href: String,
     rel: String,
     method: String,
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct PaypalCreateOrderResponse {
+pub struct PurchaseUnit {
+    pub reference_id: String,
+    pub payments: Payments,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Payments {
+    // authorizations: Vec<Authorization>,
+    pub captures: Vec<Capture>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Authorization {
     id: String,
     status: String,
-    links: Vec<PaypalLinks>,
+    amount: Amount,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Amount {
+    currency_code: String,
+    value: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Capture {
+    pub id: String,
+    pub status: String,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -32,18 +65,13 @@ pub struct PaypalAccessTokenResponse {
     nonce: String,
 }
 #[derive(Serialize, Deserialize)]
-
 pub struct PaypalCapturePaymentResponse {
-    id: String,
-    status: String,
-    links: Link,
+    pub id: String,
+    pub status: String,
+    pub purchase_units: Vec<PurchaseUnit>,
+    links: Vec<PaypalLink>,
 }
-#[derive(Serialize, Deserialize)]
-pub struct Link {
-    pub href: String,
-    pub rel: String,
-    pub method: String,
-}
+
 #[derive(Serialize, Deserialize)]
 pub struct Payer {
     pub name: PayerName,
@@ -61,12 +89,16 @@ pub async fn generate_paypal_access_token() -> Result<String, CustomError> {
     let paypal_client_secret = env::var("PAYPAL_CLIENT_SECRET").expect("set paypal secret in env");
 
     let buffer_str = format!("{}:{}", paypal_client_id, paypal_client_secret);
-
+    println!("{}", buffer_str);
     let buffer = buffer_str.as_bytes();
 
     let auth = base64::encode(&buffer);
 
     let client = reqwest::Client::new();
+
+    println!("before generate request----------");
+
+    println!("{}", auth);
 
     let response = client
         .post(format!(
@@ -74,19 +106,17 @@ pub async fn generate_paypal_access_token() -> Result<String, CustomError> {
             env::var("PAYPAL_BASE_URL").expect("set paypal base url in env")
         ))
         .body("grant_type=client_credentials")
-        .header(AUTHORIZATION, format!("Bearer {}", auth))
+        .header(AUTHORIZATION, format!("Basic {}", auth))
         .send()
         .await?;
 
-    let data: PaypalAccessTokenResponse = response.json().await?;
+    println!("after generate request----------");
+    let data = response.json::<PaypalAccessTokenResponse>().await?;
 
     Ok(data.access_token)
 }
 
-pub async fn create_order(
-    lesson: LessonType,
-    db_order: Order,
-) -> Result<PaypalCreateOrderResponse, CustomError> {
+pub async fn create_order(lesson: LessonType) -> Result<PaypalCreateOrderResponse, CustomError> {
     let access_token = generate_paypal_access_token().await?;
 
     let url = format!(
@@ -108,6 +138,9 @@ pub async fn create_order(
 
     let price = lesson.get_lesson_price();
     let description = lesson.get_description();
+    let lesson_name = lesson.get_name();
+
+    println!("before client post----------");
     let response = client
         .post(url)
         .headers(headers)
@@ -116,12 +149,31 @@ pub async fn create_order(
                 "intent": "CAPTURE",
                 "purchase_units": [
                     {
+
+                        "items": [
+                            {
+                                "name": lesson_name,
+                                "description": description,
+                                "quantity": "1",
+                                "unit_amount": {
+                                    "currency_code": "GBP",
+                                    "value": price
+                                }
+
+                            }
+                        ],
                         "amount": {
                             "currency_code": "GBP",
-                            "value": price
+                            "value": price,
+                            "breakdown": {
+                                "item_total": {
+                                    "currency_code": "GBP",
+                                    "value": price
+                                }
+                            }
                         },
                         "description": description,
-                        "reference_id": db_order.id
+
                     }
                 ]
             })
@@ -130,12 +182,18 @@ pub async fn create_order(
         .send()
         .await?;
 
-    let data = response.json::<PaypalCreateOrderResponse>().await?;
+    println!("after client post----------");
+    let text = response.text().await?;
+
+    println!("text: {}", text);
+    let data = serde_json::from_str::<PaypalCreateOrderResponse>(&text).unwrap();
 
     Ok(data)
 }
 
-pub async fn capture_payment(order_id: i32) -> Result<(PaypalCapturePaymentResponse), CustomError> {
+pub async fn capture_payment(
+    order_id: &str,
+) -> Result<(PaypalCapturePaymentResponse), CustomError> {
     let access_token = generate_paypal_access_token().await?;
     let url = format!(
         "{}/v2/checkout/orders/{}/capture",
@@ -145,7 +203,7 @@ pub async fn capture_payment(order_id: i32) -> Result<(PaypalCapturePaymentRespo
 
     let client = reqwest::Client::new();
     let mut headers = HeaderMap::new();
-
+    println!("before headers ------------------------");
     headers.insert(
         CONTENT_TYPE,
         HeaderValue::from_str("application/json").unwrap(),
@@ -155,6 +213,7 @@ pub async fn capture_payment(order_id: i32) -> Result<(PaypalCapturePaymentRespo
         HeaderValue::from_str(format!("Bearer {}", access_token).as_str()).unwrap(),
     );
 
+    println!("after headers ------------------------");
     let response = client.post(&url).headers(headers).send().await?;
 
     let data = response.json::<PaypalCapturePaymentResponse>().await?;

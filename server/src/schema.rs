@@ -1,11 +1,18 @@
 table! {
+    ballet_classes (id) {
+        id -> Uuid,
+        class_type -> Text,
+        created_at -> Timestamp,
+        class_date -> Nullable<Timestamp>,
+    }
+}
+
+table! {
     bookings (id) {
         id -> Uuid,
-        lesson_type -> Nullable<Text>,
-        is_confirmed -> Bool,
         booked_at -> Timestamp,
         booked_by -> Nullable<Int4>,
-        created_at -> Timestamp,
+        ballet_class -> Nullable<Uuid>,
     }
 }
 
@@ -19,8 +26,9 @@ table! {
 
 table! {
     orders (id) {
-        id -> Uuid,
-        email -> Text,
+        id -> Text,
+        completed -> Bool,
+        transaction_id -> Nullable<Text>,
         booking_id -> Nullable<Uuid>,
         created_at -> Timestamp,
     }
@@ -53,10 +61,12 @@ table! {
     }
 }
 
+joinable!(bookings -> ballet_classes (ballet_class));
 joinable!(bookings -> users (booked_by));
 joinable!(orders -> bookings (booking_id));
 
 allow_tables_to_appear_in_same_query!(
+    ballet_classes,
     bookings,
     confirmations,
     orders,

@@ -1,82 +1,96 @@
-import { Button, Group, MantineTheme, Stack, Title, Text, Divider } from "@mantine/core"
-import { IconArrowRight, IconSquareCheck } from "@tabler/icons"
-import { useRouter } from "next/router"
-
+import {
+  Box,
+  Button,
+  Group,
+  MantineTheme,
+  Stack,
+  Text,
+  Title,
+} from "@mantine/core";
+import { IconArrowRight, IconSquareCheck } from "@tabler/icons";
+import { useRouter } from "next/router";
+import { BsFillCheckSquareFill } from "react-icons/bs";
 interface LessonCardProps {
-    theme: MantineTheme,
-    onTop: boolean,
-    title: string,
-    price: string,
-    body: string,
-    checks: string,
-    url: string,
+  theme: MantineTheme;
+  onTop: boolean;
+  title: string;
+  price: string;
+  body: string;
+  checks: string[];
+  url: string;
 }
-const LessonCard = ({ theme, onTop, title, price, body, checks, url }: LessonCardProps) => {
-    const router = useRouter();
-    return (
-        <>
-            <Stack align='center' sx={{
-                backgroundColor: theme.colors.gray[2],
-                padding: '30px 10px',
-                width: '80%',
-                height: '465px',
-                [`@media (min-width: ${theme.breakpoints.xs}px)`]: {
-                    height: onTop ? '525px' : '465px',
-                    width: '33%',
-                    padding: '50px 30px',
-                    boxShadow: onTop ? '0px 10px 45px -5px rgb(0 0 0 / 14%);' : 'unset',
-                    transform: onTop ? 'translateY(-10px)' : 'unset'
-                }
-            }}>
-                <Title>{title}</Title>
-                <Group sx={{
-                    gap: 2
-                }}>
-                    <Title sx={{
-                        fontSize: '64px'
-                    }} >{price}</Title>
-                    <Title order={4}> / hour</Title>
-                </Group>
+const LessonCard = ({
+  theme,
+  onTop,
+  title,
+  price,
+  body,
+  checks,
+  url,
+}: LessonCardProps) => {
+  const router = useRouter();
+  return (
+    <>
+      <Stack
+        align="center"
+        justify={"space-evenly"}
+        sx={{
+          backgroundColor: theme.colors.gray[2],
+          padding: "30px 10px",
+          width: "80%",
+          height: "465px",
+          [`@media (min-width: ${theme.breakpoints.sm}px)`]: {
+            height: onTop ? "525px" : "465px",
+            width: "33%",
+            padding: "50px 30px",
+            boxShadow: onTop ? "0px 10px 45px -5px rgb(0 0 0 / 14%);" : "unset",
+            transform: onTop ? "translateY(-10px)" : "unset",
+          },
+        }}
+      >
+        <Title>{title}</Title>
+        <Group
+          sx={{
+            gap: 2,
+          }}
+        >
+          <Title
+            sx={{
+              fontSize: "64px",
+            }}
+          >
+            {price}
+          </Title>
+          <Title order={4}> / hour</Title>
+        </Group>
 
-                <Text sx={{
-                    textAlign: 'center'
-                }}>{body}</Text>
-                <Group>
-                    <IconSquareCheck />
-                    <Text size={16}>{checks}</Text>
-                </Group>
+        <Text
+          sx={{
+            textAlign: "center",
+          }}
+        >
+          {body}
+        </Text>
 
-                <Group>
-                    <IconSquareCheck />
-                    <Text size={16}>{checks}</Text>
-                </Group>
+        <Stack align={"start"}>
+          {checks.map((check) => (
+            <Group key={check}>
+              <BsFillCheckSquareFill size={14} />
 
+              <Text>{check}</Text>
+            </Group>
+          ))}
+        </Stack>
 
+        <Button
+          onClick={() => router.push(`/bookings?lesson=${url}`)}
+          rightIcon={<IconArrowRight size={14} />}
+        >
+          Book now
+        </Button>
+      </Stack>
+    </>
+  );
+};
 
-                <Button onClick={() => router.push(`/bookings?lesson=${url}`)} rightIcon={<IconArrowRight size={14} />} radius={'xs'} styles={{
-                    root: {
-                        backgroundColor: 'unset',
-                        color: 'black',
-                        border: '2px black solid',
-                        height: '50px',
-                    },
-
-                }} sx={{
-                    marginTop: 'auto',
-                    fontSize: '14px',
-                    fontFamily: 'Roboto, sans-serif',
-                    fontWeight: 'normal',
-                    '&:hover': {
-                        transition: '0.2s ease-in-out',
-                        backgroundColor: theme.colors.gray[9],
-                        color: 'white',
-                    },
-                }}>
-                    Book now
-                </Button>
-            </Stack>
-        </>
-    )
-}
-
-export default LessonCard
+export default LessonCard;

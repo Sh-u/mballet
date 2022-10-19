@@ -33,6 +33,7 @@ pub fn set_current_user(session: &Session, user_id: i32) -> () {
 }
 
 pub fn get_current_user(session: &Session) -> Result<i32, CustomError> {
+    println!("session: {:?}", session.entries());
     if let Some(id) = session.get("user")? {
         return Ok(id);
     } else {

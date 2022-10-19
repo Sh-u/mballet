@@ -8,6 +8,7 @@ const updatePost = async (postId: number, body: FormData): Promise<Response> => 
 
         method: 'PUT',
         body: body,
+        credentials: 'include'
 
     });
 }

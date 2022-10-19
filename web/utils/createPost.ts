@@ -5,6 +5,7 @@ const createPost = async (post: FormData): Promise<Response> => {
 
     method: 'POST',
     body: post,
+    credentials: 'include'
     // headers: {
     //   'Content-Type': 'multipart/form-data'
     // }

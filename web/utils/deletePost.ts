@@ -8,7 +8,9 @@ const deletePost = async (postId: number): Promise<Response> => {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json'
-    }
+    },
+    credentials: 'include'
+
   });
 }
 

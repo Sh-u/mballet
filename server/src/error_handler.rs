@@ -64,7 +64,7 @@ impl From<SessionInsertError> for CustomError {
 
 impl From<ReqwestError> for CustomError {
     fn from(error: ReqwestError) -> Self {
-        CustomError::new(400, format!("Session insert error: {}", error).as_str())
+        CustomError::new(400, format!("Reqwest error: {}", error).as_str())
     }
 }
 

@@ -1,227 +1,229 @@
 import {
-    Anchor, Button,
-    Divider, Group, Loader, Paper, PaperProps, PasswordInput, Stack, Text, TextInput, useMantineTheme
-} from '@mantine/core';
-import { upperFirst, useToggle } from '@mantine/hooks';
-import { useFormik } from 'formik';
-import { useRouter } from 'next/router';
-import { FacebookButton, GoogleButton } from './SocialButtons';
-import { Credentials } from '../types';
-import login from '../utils/login';
-import RegisterRequest from '../utils/RegisterRequest';
-import sendMail from '../utils/sendMail';
-import googleInit from '../utils/googleInit';
-
-
+  Anchor,
+  Button,
+  Divider,
+  Group,
+  Loader,
+  Paper,
+  PasswordInput,
+  Stack,
+  Text,
+  TextInput,
+  useMantineTheme,
+} from "@mantine/core";
+import { upperFirst, useToggle } from "@mantine/hooks";
+import { useFormik } from "formik";
+import { useRouter } from "next/router";
+import { Credentials } from "../types";
+import googleInit from "../utils/googleInit";
+import login from "../utils/login";
+import RegisterRequest from "../utils/RegisterRequest";
+import sendMail from "../utils/sendMail";
+import { GoogleButton } from "./SocialButtons";
 
 const validate = (values: Credentials, type: string) => {
-    const errors: Record<string, string> = {};
+  const errors: Record<string, string> = {};
 
-    if (!values.email) {
-        errors.email = 'Required';
-    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(values.email)) {
-        errors.email = 'Invalid email address';
-    }
+  if (!values.email) {
+    errors.email = "Required";
+  } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(values.email)) {
+    errors.email = "Invalid email address";
+  }
 
-    if (!values.username && type === 'register') {
-        errors.username = 'Required';
-    } else if (values.username.length < 4 && type === 'register') {
-        errors.username = 'Username should include at least 4 characters';
-    }
+  if (!values.username && type === "register") {
+    errors.username = "Required";
+  } else if (values.username.length < 4 && type === "register") {
+    errors.username = "Username should include at least 4 characters";
+  }
 
-    if (!values.password) {
-        errors.password = 'Required';
-    } else if (values.password.length < 4) {
-        errors.password = 'Password should include at least 4 characters';
-    }
+  if (!values.password) {
+    errors.password = "Required";
+  } else if (values.password.length < 4) {
+    errors.password = "Password should include at least 4 characters";
+  }
 
-    return errors;
+  return errors;
 };
 
-
 interface AuthenticationFormProps {
-    showConfirmation: () => void,
+  showConfirmation: () => void;
 }
 
 export const AuthenticationForm = (props: AuthenticationFormProps) => {
-    const [type, toggle] = useToggle(['login', 'register']);
+  const [type, toggle] = useToggle(["login", "register"]);
 
-    const router = useRouter();
-    const theme = useMantineTheme();
-    const handleGoogleClick = async () => {
-        let response = await googleInit();
+  const router = useRouter();
+  const theme = useMantineTheme();
+  const handleGoogleClick = async () => {
+    let response = await googleInit();
 
-        if (response.status !== 200) {
-            return;
-        }
-
-        let body = await response.json();
-
-        router.push(body.url);
+    if (response.status !== 200) {
+      return;
     }
 
-    const formik = useFormik({
-        initialValues: {
-            email: '',
-            username: '',
-            password: '',
-        },
-        validate: (values: Credentials) => validate(values, type),
-        onSubmit: async (values: Credentials) => {
+    let body = await response.json();
 
-            console.log('submit')
-            if (type === 'register') {
+    router.push(body.url);
+  };
 
-                let createUserResponse = await RegisterRequest(values);
-                if (createUserResponse.status !== 200) {
-                    let err = await createUserResponse.json();
+  const formik = useFormik({
+    initialValues: {
+      email: "",
+      username: "",
+      password: "",
+    },
+    validate: (values: Credentials) => validate(values, type),
+    onSubmit: async (values: Credentials) => {
+      console.log("submit");
+      if (type === "register") {
+        let createUserResponse = await RegisterRequest(values);
+        if (createUserResponse.status !== 200) {
+          let err = await createUserResponse.json();
 
-                    console.log(err.message.search("email"))
-                    if (err.message.search("email") >= 0) {
-                        formik.setErrors({
-                            email: "Email address already taken."
-                        })
+          console.log(err.message.search("email"));
+          if (err.message.search("email") >= 0) {
+            formik.setErrors({
+              email: "Email address already taken.",
+            });
+          } else {
+            formik.setErrors({
+              username: "Username already taken.",
+            });
+          }
 
-                    } else {
-                        formik.setErrors({
-                            username: "Username already taken."
-                        })
-                    }
+          return;
+        }
 
-                    return;
-                }
+        console.log("register success");
 
-                console.log('register success');
+        const sendMailResponse = await sendMail({
+          email: values.email,
+        });
 
-                const sendMailResponse = (await sendMail({
-                    email: values.email
-                }));
+        if (sendMailResponse.status !== 200) {
+          console.log("confirmation error");
+          return;
+        }
 
-                if (sendMailResponse.status !== 200) {
-                    console.log('confirmation error');
-                    return;
-                }
+        console.log("register success2");
+        props.showConfirmation();
+        // router.push(`/register/${confirmation.id}`);
+      } else {
+        console.log("login");
 
+        const loginResponse = await login(values);
 
-                console.log('register success2');
-                props.showConfirmation();
-                // router.push(`/register/${confirmation.id}`);
+        if (loginResponse.status !== 200) {
+          let err = await loginResponse.json();
 
-            }
-            else {
+          formik.setErrors({
+            email: err.message,
+          });
 
-                console.log('login')
+          return;
+        }
 
-                const loginResponse = await login(values);
+        router.push("/");
+      }
+    },
+  });
+  return (
+    <Paper
+      radius="md"
+      p="xl"
+      shadow={"sm"}
+      sx={{
+        backgroundColor: theme.colors.gray[1],
+      }}
+    >
+      <Text size="lg" weight={500}>
+        Welcome to Mballet, {type} with
+      </Text>
 
-                if (loginResponse.status !== 200) {
-                    let err = await loginResponse.json();
+      <Group position="center" mb="md" mt="md">
+        <GoogleButton
+          radius="xl"
+          clickHandler={handleGoogleClick}
+          red={theme.colors.red[6]}
+        >
+          Google
+        </GoogleButton>
+        {/* <FacebookButton radius="xl"><div>Facebook</div></FacebookButton> */}
+      </Group>
 
-                    formik.setErrors({
-                        email: err.message
-                    })
+      <Divider label="Or continue with email" labelPosition="center" my="lg" />
 
-                    return;
-                }
+      <form onSubmit={formik.handleSubmit}>
+        <Stack>
+          {type === "register" && (
+            <TextInput
+              label="Username"
+              id="username"
+              name="username"
+              placeholder="Your username"
+              value={formik.values.username}
+              onChange={formik.handleChange}
+              error={formik.errors.username}
+            />
+          )}
 
-                router.push('/');
+          <TextInput
+            required
+            label="Email"
+            id="email"
+            name="email"
+            placeholder="Your@email.com"
+            value={formik.values.email}
+            onChange={formik.handleChange}
+            error={formik.errors.email}
+          />
 
-            }
+          <PasswordInput
+            required
+            label="Password"
+            id="password"
+            name="password"
+            placeholder="Your password"
+            value={formik.values.password}
+            onChange={formik.handleChange}
+            error={formik.errors.password}
+          />
+        </Stack>
 
-        },
-    });
-    return (
-        <Paper radius="md" p="xl" shadow={'sm'} sx={{
-            backgroundColor: theme.colors.gray[1]
-        }}  >
-            <Text size="lg" weight={500}>
-                Welcome to Mballet, {type} with
-            </Text>
+        <Group position="apart" mt="xl">
+          <Stack align={"flex-start"} justify="center">
+            <Anchor
+              component="button"
+              type="button"
+              color="dimmed"
+              onClick={() => toggle()}
+              size="xs"
+            >
+              {type === "register"
+                ? "Already have an account? Login"
+                : "Don't have an account? Register"}
+            </Anchor>
 
+            <Anchor
+              component="button"
+              type="button"
+              color="dimmed"
+              size="xs"
+              onClick={() => router.push("/forgotpassword")}
+            >
+              Forgot password?
+            </Anchor>
+          </Stack>
 
-            <Group position='center' mb="md" mt="md">
-                <GoogleButton radius="xl" clickHandler={handleGoogleClick}>Google</GoogleButton>
-                {/* <FacebookButton radius="xl"><div>Facebook</div></FacebookButton> */}
-            </Group>
-
-            <Divider label="Or continue with email" labelPosition="center" my="lg" />
-
-            <form onSubmit={formik.handleSubmit}>
-                <Stack>
-                    {type === 'register' && (
-                        <TextInput
-                            label="Username"
-                            id='username'
-                            name='username'
-                            placeholder="Your username"
-                            value={formik.values.username}
-                            onChange={formik.handleChange}
-                            error={formik.errors.username}
-                        />
-                    )}
-
-                    <TextInput
-                        required
-                        label="Email"
-                        id='email'
-                        name='email'
-                        placeholder="Your@email.com"
-                        value={formik.values.email}
-                        onChange={formik.handleChange}
-
-                        error={formik.errors.email}
-                    />
-
-                    <PasswordInput
-                        required
-                        label="Password"
-                        id='password'
-                        name='password'
-                        placeholder="Your password"
-                        value={formik.values.password}
-                        onChange={formik.handleChange}
-                        error={formik.errors.password}
-                    />
-
-
-                </Stack>
-
-
-                <Group position="apart" mt="xl">
-                    <Stack align={'flex-start'} justify='center'>
-                        <Anchor
-                            component="button"
-                            type="button"
-                            color="dimmed"
-                            onClick={() => toggle()}
-                            size="xs"
-                        >
-                            {type === 'register'
-                                ? 'Already have an account? Login'
-                                : "Don't have an account? Register"}
-                        </Anchor>
-
-                        <Anchor component="button"
-                            type="button"
-                            color="dimmed"
-                            size='xs'
-                            onClick={() => router.push('/forgotpassword')}>
-                            Forgot password?
-                        </Anchor>
-                    </Stack>
-
-                    {formik.isSubmitting ? <Loader /> : <Button sx={{
-                        fontWeight: 'normal',
-                        backgroundColor: theme.colors.dark[6],
-                        '&:hover': {
-                            backgroundColor: theme.colors.gray[1],
-                            border: '1px solid black',
-                            color: theme.colors.dark[6]
-                        }
-                    }} type="submit" onClick={async () => formik.submitForm()}>{upperFirst(type)}</Button>}
-
-                </Group>
-            </form>
-        </Paper>
-    );
-}
+          {formik.isSubmitting ? (
+            <Loader />
+          ) : (
+            <Button type="submit" onClick={async () => formik.submitForm()}>
+              {upperFirst(type)}
+            </Button>
+          )}
+        </Group>
+      </form>
+    </Paper>
+  );
+};
