@@ -26,6 +26,5 @@ pub struct Booking {
 
 #[derive(Serialize, Deserialize)]
 pub struct CreateBookingInput {
-    pub class_id: Uuid,
-    pub is_course: Option<bool>,
+    pub class_id: Vec<Uuid>,
 }

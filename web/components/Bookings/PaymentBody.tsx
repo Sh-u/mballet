@@ -25,7 +25,7 @@ const PaymentBody = ({ class_id, handleApprovedPayment }: PaymentBodyProps) => {
           style={{ layout: "vertical", color: "black", tagline: false }}
           createOrder={(data, actions) => {
             return createOrder({
-              class_id: class_id,
+              class_id: [class_id],
               // user_id: 1,
             })
               .then((response) => response.json())

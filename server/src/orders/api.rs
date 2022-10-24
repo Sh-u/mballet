@@ -1,24 +1,24 @@
 use crate::{
     ballet_classes::model::BalletClass, bookings::model::Booking, db::connection,
-    error_handler::CustomError, schema::orders,
+    error_handler::CustomError, order_details::model::OrderDetails, schema::orders,
 };
 use chrono::Utc;
 use diesel::prelude::*;
 use uuid::Uuid;
 
-use super::model::Order;
+use super::{
+    model::{Order, PaypalCreateOrderResponse},
+    payment_utils::create_order,
+};
 
 impl Order {
-    pub fn create(class_id: Uuid, order_id: &str) -> Result<Order, CustomError> {
-        BalletClass::get_one(class_id)?;
-
+    pub fn create(order_id: &str) -> Result<Order, CustomError> {
         let conn = connection()?;
 
         let order = Order {
             id: order_id.to_owned(),
             completed: false,
             transaction_id: None,
-            class_id: class_id,
             created_at: Utc::now().naive_utc(),
         };
 
@@ -44,13 +44,34 @@ impl Order {
                 ))
                 .get_result(&conn)?;
 
-            let class_id = order.class_id;
+            let order_details: Vec<OrderDetails> =
+                OrderDetails::belonging_to(&order).load::<OrderDetails>(&conn)?;
 
-            Booking::create(class_id, client_id)?;
+            for details in order_details {
+                Booking::create(details.product_id, client_id)?;
+            }
 
             Ok(())
         })?;
         Ok(())
+    }
+
+    pub async fn init_order(
+        product_ids: Vec<Uuid>,
+        classes: &Vec<BalletClass>,
+    ) -> Result<PaypalCreateOrderResponse, CustomError> {
+        let conn = connection()?;
+
+        let paypal_order = create_order(classes).await?;
+
+        conn.transaction::<_, CustomError, _>(|| {
+            let order = Order::create(&paypal_order.id)?;
+            OrderDetails::create(order.id, product_ids)?;
+
+            Ok(())
+        })?;
+
+        Ok(paypal_order)
     }
 
     pub fn delete(order_id: &str) -> Result<(), CustomError> {

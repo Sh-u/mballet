@@ -183,20 +183,39 @@ impl BalletClass {
         //     .load::<Booking>(&conn)?)
     }
 
-    pub fn check_available(class_id: Uuid) -> Result<Option<BalletClass>, CustomError> {
-        let class = BalletClass::get_one(class_id)?;
+    pub fn check_available(class_ids: Vec<Uuid>) -> Result<Option<Vec<BalletClass>>, CustomError> {
+        let mut classes = Vec::with_capacity(class_ids.len());
+
+        for id in class_ids {
+            let class = BalletClass::get_one(id)?;
+            classes.push(class);
+        }
 
         let conn = connection()?;
 
-        let class_bookings: Vec<Booking> = Booking::belonging_to(&class).load::<Booking>(&conn)?;
+        let first_name = classes.get(0).unwrap().class_name.get_name();
 
-        match class.class_type {
-            ClassType::SINGLE if class_bookings.is_empty() => Ok(Some(class)),
-            ClassType::GROUP if class_bookings.len() < class.slots.unwrap() as usize => {
-                Ok(Some(class))
+        for class in &classes {
+            let class_bookings: Vec<Booking> =
+                Booking::belonging_to(class).load::<Booking>(&conn)?;
+
+            if class.class_name.get_name() != first_name {
+                return Err(CustomError::new(
+                    400,
+                    "Unable to create an order with multiple different class types.",
+                ));
             }
-            _ => Ok(None),
+
+            match class.class_type {
+                ClassType::SINGLE if class_bookings.is_empty() => continue,
+                ClassType::GROUP if class_bookings.len() < class.slots.unwrap() as usize => {
+                    continue
+                }
+                _ => return Ok(None),
+            }
         }
+
+        Ok(Some(classes))
     }
 }
 

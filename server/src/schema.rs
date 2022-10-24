@@ -27,11 +27,19 @@ table! {
 }
 
 table! {
+    order_details (id) {
+        id -> Uuid,
+        order_id -> Text,
+        product_id -> Uuid,
+        created_at -> Timestamp,
+    }
+}
+
+table! {
     orders (id) {
         id -> Text,
         completed -> Bool,
         transaction_id -> Nullable<Text>,
-        class_id -> Uuid,
         created_at -> Timestamp,
     }
 }
@@ -65,12 +73,14 @@ table! {
 
 joinable!(bookings -> ballet_classes (ballet_class));
 joinable!(bookings -> users (booked_by));
-joinable!(orders -> ballet_classes (class_id));
+joinable!(order_details -> ballet_classes (product_id));
+joinable!(order_details -> orders (order_id));
 
 allow_tables_to_appear_in_same_query!(
     ballet_classes,
     bookings,
     confirmations,
+    order_details,
     orders,
     posts,
     users,

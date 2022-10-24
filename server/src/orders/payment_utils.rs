@@ -1,4 +1,4 @@
-use crate::ballet_classes::model::{ClassName, CourseName};
+use crate::ballet_classes::model::{BalletClass, ClassName, CourseName};
 use crate::error_handler::CustomError;
 use crate::orders::model::{PaypalAccessTokenResponse, PaypalCreateOrderResponse};
 use base64;
@@ -42,8 +42,7 @@ pub async fn generate_paypal_access_token() -> Result<String, CustomError> {
 }
 
 pub async fn create_order(
-    class_name: ClassName,
-    is_course: Option<bool>,
+    classes: &Vec<BalletClass>,
 ) -> Result<PaypalCreateOrderResponse, CustomError> {
     let access_token = generate_paypal_access_token().await?;
 
@@ -64,15 +63,11 @@ pub async fn create_order(
         HeaderValue::from_str(format!("Bearer {}", access_token).as_str()).unwrap(),
     );
 
+    let first_class = classes.get(0).unwrap();
+    let class_name = ClassName::from_str(&first_class.class_name.get_name())?;
     let item_price = class_name.get_lesson_price();
-    let mut total_price = item_price.clone();
-    let mut item_quantity = String::from("1");
-    if is_course.is_some() {
-        let course_name = CourseName::from_class_name(&class_name)?;
-        total_price = course_name.get_price();
-        item_quantity = course_name.get_classes_quantity();
-    }
-
+    let total_price = (item_price.parse::<f32>().unwrap() * classes.len() as f32).to_string();
+    let item_quantity = classes.len().to_string();
     let description = class_name.get_description();
     let lesson_name = class_name.get_name();
 

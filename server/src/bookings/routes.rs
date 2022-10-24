@@ -27,7 +27,7 @@ pub async fn create_booking(
     let user_id = get_current_user(&session)?;
     let input = input.into_inner();
 
-    Booking::create(input.class_id, user_id)?;
+    Booking::create(input.class_id.get(0).unwrap().to_owned(), user_id)?;
 
     Ok(HttpResponse::Ok().json(json!({
         "message": "You have successfully booked your lesson!"

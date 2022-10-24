@@ -20,6 +20,7 @@ pub mod ballet_classes;
 pub mod bookings;
 pub mod db;
 pub mod error_handler;
+pub mod order_details;
 pub mod orders;
 pub mod posts;
 pub mod schema;

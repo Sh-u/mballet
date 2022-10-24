@@ -1,6 +1,6 @@
 
 interface CreateOrderBody {
-    class_id: string,
+    class_id: string[],
     // user_id: number
 }
 

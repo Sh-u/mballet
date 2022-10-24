@@ -36,7 +36,10 @@ impl Booking {
     pub fn create(class_id: Uuid, client_id: i32) -> Result<Booking, CustomError> {
         let conn = connection()?;
 
-        let class = BalletClass::check_available(class_id)?;
+        let mut class_ids = Vec::with_capacity(1);
+        class_ids.push(class_id);
+
+        let class = BalletClass::check_available(class_ids)?;
 
         if class.is_none() {
             return Err(CustomError::new(
@@ -44,13 +47,12 @@ impl Booking {
                 "Completing order failed: This class is already booked.",
             ));
         }
-        let class = class.unwrap();
 
         let booking = Booking {
             id: Uuid::new_v4(),
             booked_at: Utc::now().naive_utc(),
             booked_by: client_id,
-            ballet_class: class.id,
+            ballet_class: class_id,
         };
 
         let booking = diesel::insert_into(bookings::table)

@@ -4,14 +4,12 @@ use uuid::Uuid;
 use crate::ballet_classes::model::BalletClass;
 use crate::schema::orders;
 
-#[derive(Queryable, Deserialize, Serialize, Associations, Insertable)]
-#[belongs_to(BalletClass, foreign_key = "class_id")]
+#[derive(Queryable, Deserialize, Serialize, Insertable, Identifiable, Associations)]
 #[table_name = "orders"]
 pub struct Order {
     pub id: String,
     pub completed: bool,
     pub transaction_id: Option<String>,
-    pub class_id: Uuid,
     pub created_at: chrono::NaiveDateTime,
 }
 

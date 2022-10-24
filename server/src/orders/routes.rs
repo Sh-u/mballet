@@ -5,6 +5,7 @@ use crate::{
     ballet_classes::model::BalletClass,
     bookings::model::CreateBookingInput,
     error_handler::CustomError,
+    order_details::model::OrderDetails,
     orders::{
         model::Order,
         payment_utils::{capture_payment, create_order},
@@ -19,17 +20,17 @@ pub async fn orders(
 ) -> Result<HttpResponse, CustomError> {
     get_current_user(&session)?;
     let input = input.into_inner();
-    let class = BalletClass::check_available(input.class_id)?;
 
-    if class.is_none() {
+    let classes = BalletClass::check_available(input.class_id.clone())?;
+
+    if classes.is_none() {
         return Err(CustomError::new(
             400,
-            "Creating order failed: This class is already booked.",
+            "Creating order failed: Some of the classes you ordered are not available.",
         ));
     }
 
-    let paypal_order = create_order(class.unwrap().class_name, input.is_course).await?;
-    Order::create(input.class_id, &paypal_order.id)?;
+    let paypal_order = Order::init_order(input.class_id, &classes.unwrap()).await?;
 
     Ok(HttpResponse::Ok().json(paypal_order))
 }
