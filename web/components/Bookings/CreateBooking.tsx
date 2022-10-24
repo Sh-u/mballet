@@ -4,19 +4,14 @@ import dayjs from "dayjs";
 import "dayjs/locale/en-gb";
 import { useEffect, useRef, useState } from "react";
 import { AlertState } from "../../hooks/useAlert";
-import createBooking from "../../utils/createBooking";
+import createClass from "../../utils/requests/bookings/createClass";
 import MapToDbName from "../../utils/mapToDbName";
 import me from "../../utils/me";
+import { BalletClass } from "../../pages/bookings";
 
-interface Booking {
-  id: string | number;
-  booked_at: string;
-  booked_by: number | null;
-  created_at: string;
-}
 interface CreateBookingProps {
   handleSetAlertInfo: (type: AlertState, message: string) => void;
-  handleAddBooking: (booking: Booking) => void;
+  handleAddBooking: (booking: BalletClass) => void;
 }
 
 const CreateBooking = ({
@@ -69,9 +64,9 @@ const CreateBooking = ({
       .subtract(1, "hour")
       .format("YYYY-MM-DDTHH:mm:ss[Z]");
 
-    let response = await createBooking({
+    let response = await createClass({
       date: isoDate,
-      lesson_type: lesson,
+      class_name: lesson,
     });
 
     if (response.status !== 200) {
@@ -80,10 +75,10 @@ const CreateBooking = ({
       return;
     }
 
-    let booking: Booking = await response.json();
+    let balletClass: BalletClass = await response.json();
 
     handleSetAlertInfo(AlertState.success, "Created a booking successfuly");
-    handleAddBooking(booking);
+    handleAddBooking(balletClass);
   };
 
   return (

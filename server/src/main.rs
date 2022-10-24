@@ -7,17 +7,20 @@ use actix_session::config::{PersistentSession, TtlExtensionPolicy};
 use actix_session::{storage::RedisActorSessionStore, SessionMiddleware};
 use actix_web::cookie::time::Duration;
 use actix_web::{cookie::SameSite, http, middleware::Logger, App, HttpServer};
+use ballet_classes::routes::init_routes as ClassesInitRoutes;
 use bookings::routes::init_routes as BookingsInitRoutes;
 use dotenv::dotenv;
 use futures::AsyncReadExt;
 use listenfd::ListenFd;
+use orders::routes::init_routes as OrdersInitRoutes;
 use posts::routes::init_routes as PostsInitRoutes;
 use std::env;
 use users::routes::init_routes as UserInitRoutes;
-
+pub mod ballet_classes;
 pub mod bookings;
 pub mod db;
 pub mod error_handler;
+pub mod orders;
 pub mod posts;
 pub mod schema;
 pub mod users;
@@ -73,6 +76,8 @@ async fn main() -> std::io::Result<()> {
             .configure(PostsInitRoutes)
             .configure(UserInitRoutes)
             .configure(BookingsInitRoutes)
+            .configure(OrdersInitRoutes)
+            .configure(ClassesInitRoutes)
     });
 
     server = match listenfd.take_tcp_listener(0)? {

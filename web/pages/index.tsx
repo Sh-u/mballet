@@ -27,7 +27,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import AboutUs from "../components/AboutUs";
 import Footer from "../components/Footer";
-import LessonCard from "../components/LessonCard";
+import CourseCard from "../components/Classes/CourseCard";
 import Navbar from "../components/Navbar";
 import NewsCardPreview from "../components/NewsCardPreview";
 import TestimonialCard from "../components/TestimonialCard";
@@ -403,7 +403,7 @@ const Home = () => {
             },
           }}
         >
-          <LessonCard
+          <CourseCard
             theme={theme}
             onTop={false}
             title={"Beginners"}
@@ -412,7 +412,7 @@ const Home = () => {
             checks={["Online", "8 Weeks Course"]}
             url={"BeginnersOnline"}
           />
-          <LessonCard
+          <CourseCard
             theme={theme}
             onTop={true}
             title={"One on One"}
@@ -422,7 +422,7 @@ const Home = () => {
             url={"OneOnOne"}
           />
 
-          <LessonCard
+          <CourseCard
             theme={theme}
             onTop={false}
             title={"Intermediate"}

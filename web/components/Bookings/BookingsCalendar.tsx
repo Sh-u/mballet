@@ -4,13 +4,13 @@ import { IconArrowBack } from "@tabler/icons";
 import dayjs from "dayjs";
 import router from "next/router";
 import { CSSProperties, Dispatch } from "react";
-import { Booking } from "../../pages/bookings";
+import { BalletClass } from "../../pages/bookings";
 
 interface CalendarProps {
   theme: MantineTheme;
   value: any;
   setValue: Dispatch<any>;
-  bookings: Booking[];
+  bookings: BalletClass[];
 }
 
 const BookingsCalendar = ({
@@ -59,7 +59,7 @@ const BookingsCalendar = ({
         excludeDate={(date) => {
           return !bookings?.some(
             (booking) =>
-              dayjs(booking.booked_at).format("YYYY-MM-DD") ===
+              dayjs(booking.class_date).format("YYYY-MM-DD") ===
               dayjs(date).format("YYYY-MM-DD")
           );
         }}
@@ -68,7 +68,7 @@ const BookingsCalendar = ({
             border: `1px solid ${
               theme.colorScheme === "dark"
                 ? theme.colors.dark[4]
-                : theme.colors.gray[2]
+                : theme.colors.gray[4]
             }`,
           },
           calendarBase: {},
@@ -80,17 +80,21 @@ const BookingsCalendar = ({
             height: 50,
             fontSize: theme.fontSizes.lg,
           },
-          weekday: { fontSize: theme.fontSizes.lg, fontWeight: "bold" },
+          weekday: {
+            fontSize: theme.fontSizes.lg,
+            fontWeight: "bold",
+            color: theme.colors.gray[6],
+          },
           weekdayCell: {
             fontSize: theme.fontSizes.xl,
             backgroundColor:
               theme.colorScheme === "dark"
                 ? theme.colors.dark[5]
                 : theme.colors.gray[0],
-            border: `2px solid ${
+            border: `1px solid ${
               theme.colorScheme === "dark"
                 ? theme.colors.dark[4]
-                : theme.colors.gray[2]
+                : theme.colors.gray[5]
             }`,
             height: 60,
             [`@media (min-width: ${theme.breakpoints.md}px)`]: {

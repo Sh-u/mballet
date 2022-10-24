@@ -1,88 +1,13 @@
+use crate::ballet_classes::model::{ClassName, CourseName};
 use crate::error_handler::CustomError;
+use crate::orders::model::{PaypalAccessTokenResponse, PaypalCreateOrderResponse};
 use base64;
 use reqwest;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
-use serde::{Deserialize, Serialize};
 use serde_json::{self, json};
 use std::env;
 
-use super::model::{LessonType, Order};
-
-#[derive(Serialize, Deserialize)]
-pub struct PaypalCreateOrderResponse {
-    pub id: String,
-    status: String,
-    // purchase_units: Vec<PurchaseUnit>,
-    links: Vec<PaypalLink>,
-    create_time: Option<String>,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct PaypalLink {
-    href: String,
-    rel: String,
-    method: String,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct PurchaseUnit {
-    pub reference_id: String,
-    pub payments: Payments,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct Payments {
-    // authorizations: Vec<Authorization>,
-    pub captures: Vec<Capture>,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct Authorization {
-    id: String,
-    status: String,
-    amount: Amount,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct Amount {
-    currency_code: String,
-    value: String,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct Capture {
-    pub id: String,
-    pub status: String,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct PaypalAccessTokenResponse {
-    scope: String,
-    access_token: String,
-    token_type: String,
-    app_id: String,
-    expires_in: i32,
-    nonce: String,
-}
-#[derive(Serialize, Deserialize)]
-pub struct PaypalCapturePaymentResponse {
-    pub id: String,
-    pub status: String,
-    pub purchase_units: Vec<PurchaseUnit>,
-    links: Vec<PaypalLink>,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct Payer {
-    pub name: PayerName,
-    pub email_address: String,
-    pub payer_id: String,
-}
-#[derive(Serialize, Deserialize)]
-pub struct PayerName {
-    pub given_name: String,
-    pub surname: String,
-}
+use super::model::PaypalCapturePaymentResponse;
 
 pub async fn generate_paypal_access_token() -> Result<String, CustomError> {
     let paypal_client_id = env::var("PAYPAL_CLIENT_ID").expect("set paypal client id in env");
@@ -116,7 +41,10 @@ pub async fn generate_paypal_access_token() -> Result<String, CustomError> {
     Ok(data.access_token)
 }
 
-pub async fn create_order(lesson: LessonType) -> Result<PaypalCreateOrderResponse, CustomError> {
+pub async fn create_order(
+    class_name: ClassName,
+    is_course: Option<bool>,
+) -> Result<PaypalCreateOrderResponse, CustomError> {
     let access_token = generate_paypal_access_token().await?;
 
     let url = format!(
@@ -136,9 +64,17 @@ pub async fn create_order(lesson: LessonType) -> Result<PaypalCreateOrderRespons
         HeaderValue::from_str(format!("Bearer {}", access_token).as_str()).unwrap(),
     );
 
-    let price = lesson.get_lesson_price();
-    let description = lesson.get_description();
-    let lesson_name = lesson.get_name();
+    let item_price = class_name.get_lesson_price();
+    let mut total_price = item_price.clone();
+    let mut item_quantity = String::from("1");
+    if is_course.is_some() {
+        let course_name = CourseName::from_class_name(&class_name)?;
+        total_price = course_name.get_price();
+        item_quantity = course_name.get_classes_quantity();
+    }
+
+    let description = class_name.get_description();
+    let lesson_name = class_name.get_name();
 
     println!("before client post----------");
     let response = client
@@ -154,21 +90,21 @@ pub async fn create_order(lesson: LessonType) -> Result<PaypalCreateOrderRespons
                             {
                                 "name": lesson_name,
                                 "description": description,
-                                "quantity": "1",
+                                "quantity": item_quantity,
                                 "unit_amount": {
                                     "currency_code": "GBP",
-                                    "value": price
+                                    "value": item_price
                                 }
 
                             }
                         ],
                         "amount": {
                             "currency_code": "GBP",
-                            "value": price,
+                            "value": total_price,
                             "breakdown": {
                                 "item_total": {
                                     "currency_code": "GBP",
-                                    "value": price
+                                    "value": total_price
                                 }
                             }
                         },

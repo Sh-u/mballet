@@ -20,6 +20,13 @@ impl CustomError {
             status_code,
         }
     }
+
+    pub fn enum_error(message: String) -> Self {
+        CustomError {
+            message,
+            status_code: 500,
+        }
+    }
 }
 
 impl Display for CustomError {

@@ -94,7 +94,7 @@ function MyApp({ Component, pageProps }: AppProps) {
                   color: "white",
                   fontWeight: "normal",
                   "&:hover": {
-                    backgroundColor: theme.colors.gray[2],
+                    backgroundColor: theme.colors.gray[4],
 
                     color: theme.colors.dark[6],
                   },

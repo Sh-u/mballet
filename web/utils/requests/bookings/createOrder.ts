@@ -1,6 +1,6 @@
 
 interface CreateOrderBody {
-    booking_id: string,
+    class_id: string,
     // user_id: number
 }
 

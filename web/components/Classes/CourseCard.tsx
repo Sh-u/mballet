@@ -1,16 +1,8 @@
-import {
-  Box,
-  Button,
-  Group,
-  MantineTheme,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
-import { IconArrowRight, IconSquareCheck } from "@tabler/icons";
+import { Button, Group, MantineTheme, Stack, Text, Title } from "@mantine/core";
+import { IconArrowRight } from "@tabler/icons";
 import { useRouter } from "next/router";
 import { BsFillCheckSquareFill } from "react-icons/bs";
-interface LessonCardProps {
+interface CourseCardProps {
   theme: MantineTheme;
   onTop: boolean;
   title: string;
@@ -19,7 +11,7 @@ interface LessonCardProps {
   checks: string[];
   url: string;
 }
-const LessonCard = ({
+const CourseCard = ({
   theme,
   onTop,
   title,
@@ -27,7 +19,7 @@ const LessonCard = ({
   body,
   checks,
   url,
-}: LessonCardProps) => {
+}: CourseCardProps) => {
   const router = useRouter();
   return (
     <>
@@ -93,4 +85,4 @@ const LessonCard = ({
   );
 };
 
-export default LessonCard;
+export default CourseCard;

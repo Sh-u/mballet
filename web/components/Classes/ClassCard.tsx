@@ -2,7 +2,7 @@ import { Button, Group, MantineTheme, Stack, Text, Title } from "@mantine/core";
 import { IconArrowRight } from "@tabler/icons";
 import Link from "next/link";
 
-interface ClassItemProps {
+interface ClassCardProps {
   theme: MantineTheme;
   price: string;
   title: string;
@@ -10,7 +10,7 @@ interface ClassItemProps {
   href: string;
 }
 
-const ClassItem = ({ theme, price, title, body, href }: ClassItemProps) => {
+const ClassCard = ({ theme, price, title, body, href }: ClassCardProps) => {
   return (
     <>
       <Stack
@@ -54,4 +54,4 @@ const ClassItem = ({ theme, price, title, body, href }: ClassItemProps) => {
   );
 };
 
-export default ClassItem;
+export default ClassCard;

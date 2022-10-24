@@ -9,11 +9,11 @@ import {
   Stack,
 } from "@mantine/core";
 import { IconChevronDown, IconMenu2, IconX } from "@tabler/icons";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { FaFacebook, FaInstagram } from "react-icons/fa";
 import logout from "../utils/logout";
 import me from "../utils/me";
-import Link from "next/link";
 import MainPageAnchor from "./MainPageAnchor";
 
 interface NavbarProps {

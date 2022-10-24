@@ -1,7 +1,7 @@
 import { Group, Stack, Text, Title, useMantineTheme } from "@mantine/core";
-import ClassItem from "../components/ClassItem";
+import ClassCard from "../components/Classes/ClassCard";
 import Footer from "../components/Footer";
-import LessonCard from "../components/LessonCard";
+import CourseCard from "../components/Classes/CourseCard";
 import MainContentWrapper from "../components/MainContentWrapper";
 import Navbar from "../components/Navbar";
 
@@ -44,7 +44,7 @@ const ClassesPage = () => {
               },
             }}
           >
-            <LessonCard
+            <CourseCard
               theme={theme}
               onTop={false}
               title={"Beginners"}
@@ -53,7 +53,7 @@ const ClassesPage = () => {
               checks={["Online", "8 Weeks Course"]}
               url={"BeginnersOnline"}
             />
-            <LessonCard
+            <CourseCard
               theme={theme}
               onTop={true}
               title={"One on One"}
@@ -63,7 +63,7 @@ const ClassesPage = () => {
               url={"OneOnOne"}
             />
 
-            <LessonCard
+            <CourseCard
               theme={theme}
               onTop={false}
               title={"Intermediate"}
@@ -98,25 +98,25 @@ const ClassesPage = () => {
               },
             }}
           >
-            <ClassItem
+            <ClassCard
               theme={theme}
               price={"45$"}
               title={"BEGINNERS"}
               body={
                 "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis pulvinar."
               }
-              href={"/bookings?lesson=BeginnersOnline"}
+              href={"/bookings?class=beginners-online"}
             />
-            <ClassItem
+            <ClassCard
               theme={theme}
               price={"55$"}
               title={"ONE ON ONE"}
               body={
                 "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis pulvinar."
               }
-              href={"/bookings?lesson=OneOnOne"}
+              href={"/bookings?class=one-on-one"}
             />
-            <ClassItem
+            <ClassCard
               theme={theme}
               price={"45$"}
               title={"INTERMEDIATE"}

@@ -1,20 +1,17 @@
 import {
   Box,
-  Button,
   Center,
-  Divider,
   Loader,
   SimpleGrid,
   Stack,
-  Text,
   useMantineTheme,
 } from "@mantine/core";
-import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 import dayjs from "dayjs";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import useSwr, { useSWRConfig } from "swr";
 import BookingsCalendar from "../components/Bookings/BookingsCalendar";
+import CheckoutWindow from "../components/Bookings/CheckoutWindow";
 import CreateBooking from "../components/Bookings/CreateBooking";
 import PaymentBody from "../components/Bookings/PaymentBody";
 import PaymentCompletion from "../components/Bookings/PaymentCompletion";
@@ -24,23 +21,24 @@ import Footer from "../components/Footer";
 import MainContentWrapper from "../components/MainContentWrapper";
 import Navbar from "../components/Navbar";
 import useAlert, { UseAlertProps } from "../hooks/useAlert";
-import book from "../utils/book";
 
-import getAllAvailableBookingsOfType from "../utils/getAllAvailableBookingsOfType";
-import { getBookingsPrice } from "../utils/getBookingsPrice";
 import MapToDbName from "../utils/mapToDbName";
 import me from "../utils/me";
+import getAllAvailableClassesByName from "../utils/requests/bookings/getAllAvailableClassesByName";
+import { getClassesPrice } from "../utils/requests/bookings/getClassesPrice";
 
-interface TimeButton {
+export interface TimeButton {
   time: string;
   index: number;
 }
 
-export interface Booking {
-  id: string | number;
-  booked_at: string;
-  booked_by: number | null;
+export interface BalletClass {
+  class_date: string;
+  class_name: string;
+  class_type: string;
   created_at: string;
+  id: string | number;
+  slots: number;
 }
 
 enum AlertState {
@@ -49,8 +47,8 @@ enum AlertState {
 }
 
 enum ClassNames {
-  OneOnOne = "OneOnOne",
-  BeginnersOnline = "BeginnersOnline",
+  OneOnOne = "one-on-one",
+  BeginnersOnline = "beginners-online",
 }
 
 export enum RenderState {
@@ -69,45 +67,45 @@ const BookingsPage = () => {
   const [renderState, setRenderState] = useState<RenderState>(
     RenderState.booking
   );
-  const [lessonPrice, setLessonPrice] = useState<string | null>(null);
+  const [classPrice, setClassPrice] = useState<string | null>(null);
   const myAlert = useAlert(alertInfo);
   const router = useRouter();
   const { mutate } = useSWRConfig();
 
-  const { lesson: lesson_query } = router.query;
+  const { class: class_query } = router.query;
 
   useEffect(() => {
     if (
       router.isReady &&
       ![ClassNames.BeginnersOnline, ClassNames.OneOnOne].includes(
-        lesson_query as ClassNames
+        class_query as ClassNames
       )
     ) {
       router.push("/");
     }
-    if (!lesson_query) return;
+    if (!class_query) return;
 
     const getLessonPrice = async () => {
-      const lesson_name = MapToDbName(lesson_query as string);
-      const response = await getBookingsPrice(lesson_name);
+      const lesson_name = MapToDbName(class_query as string);
+      const response = await getClassesPrice(lesson_name);
 
       if (response.status !== 200) {
         return;
       }
 
       const price = await response.text();
-      setLessonPrice(price);
+      setClassPrice(price);
     };
 
     getLessonPrice().catch(console.error);
-  }, [router, lesson_query]);
+  }, [router, class_query]);
 
-  const [fetchUrl, fetcher] = getAllAvailableBookingsOfType(
-    MapToDbName(lesson_query as string)
+  const [fetchUrl, fetcher] = getAllAvailableClassesByName(
+    MapToDbName(class_query as string)
   );
 
-  const { data: bookings } = useSwr<Booking[], any>(
-    lesson_query ? fetchUrl : null,
+  const { data: classes } = useSwr<BalletClass[], any>(
+    class_query ? fetchUrl : null,
     fetcher
   );
 
@@ -156,30 +154,7 @@ const BookingsPage = () => {
     setRenderState(RenderState.payment);
   };
 
-  const handleSubmitBook = async () => {
-    if (!time || !bookings) {
-      handleSetAlertInfo(
-        AlertState.failure,
-        "Booking failed, please select a valid date first."
-      );
-      return;
-    }
-
-    let response = await book({
-      booking_id: bookings[time.index].id as number,
-    });
-
-    if (response.status !== 200) {
-      let error = await response.json();
-      handleSetAlertInfo(AlertState.failure, error.message);
-      return;
-    }
-
-    let booking = await response.json();
-    handleSetAlertInfo(AlertState.success, booking.message);
-  };
-
-  if (!bookings) {
+  if (!classes) {
     return (
       <Center
         sx={{
@@ -205,7 +180,7 @@ const BookingsPage = () => {
             theme={theme}
             value={value}
             setValue={setValue}
-            bookings={bookings}
+            bookings={classes}
           />
         );
       case RenderState.payment:
@@ -215,7 +190,7 @@ const BookingsPage = () => {
             <PaymentHeader theme={theme} setRenderState={setRenderState} />
 
             <PaymentBody
-              booking_id={bookings[time.index].id as string}
+              class_id={classes[time.index].id as string}
               handleApprovedPayment={handleApprovedPayment}
             />
           </>
@@ -274,46 +249,30 @@ const BookingsPage = () => {
                 },
               }}
             >
-              <Stack
-                p="xl"
-                sx={(theme) => ({
-                  border: `1px solid ${
-                    theme.colorScheme === "dark"
-                      ? theme.colors.dark[4]
-                      : theme.colors.gray[2]
-                  }`,
-                })}
-              >
-                <Text size={"xl"} weight="bold">
-                  {lesson_query}
-                </Text>
-                <Text size={"md"}>1hr | {lessonPrice} £</Text>
-                <Divider />
-                <Box>
-                  <Text size={"lg"}>{value?.toDateString()}</Text>
-                  <Text size={"lg"}>{time?.time}</Text>
-                </Box>
-
-                {renderState === RenderState.payment ? (
-                  <Button disabled>Proceed with payment</Button>
-                ) : (
-                  <Button onClick={() => handleProceedPayment()}>Book</Button>
-                )}
-              </Stack>
+              <CheckoutWindow
+                classPrice={classPrice}
+                class_query={class_query}
+                handleProceedPayment={handleProceedPayment}
+                renderState={renderState}
+                theme={theme}
+                time={time}
+                value={value}
+              />
 
               <CreateBooking
                 handleAddBooking={(booking) => {
                   console.log("create booking: ", booking);
-                  if (!bookings) {
+                  if (!classes) {
                     return;
                   }
 
                   mutate(
                     fetchUrl,
                     async () => {
-                      const bookings2 = [...bookings, booking].sort((a, b) => {
-                        if (dayjs(a.booked_at).isBefore(b.booked_at)) return -1;
-                        else if (dayjs(a.booked_at).isAfter(b.booked_at))
+                      const bookings2 = [...classes, booking].sort((a, b) => {
+                        if (dayjs(a.class_date).isBefore(b.class_date))
+                          return -1;
+                        else if (dayjs(a.class_date).isAfter(b.class_date))
                           return 1;
                         else return 0;
                       });
@@ -340,9 +299,9 @@ const BookingsPage = () => {
                   justifyContent: "start",
                 }}
               >
-                {bookings?.map((booking, index) => {
+                {classes?.map((balletClass, index) => {
                   const bookedAt = dayjs(
-                    new Date(Date.parse(booking.booked_at))
+                    new Date(Date.parse(balletClass.class_date))
                   ).add(1, "hour");
                   if (
                     bookedAt.format("YYYY-MM-DD") !==
