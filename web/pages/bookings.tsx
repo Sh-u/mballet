@@ -12,7 +12,7 @@ import { useEffect, useState } from "react";
 import useSwr, { useSWRConfig } from "swr";
 import BookingsCalendar from "../components/Bookings/BookingsCalendar";
 import CheckoutWindow from "../components/Bookings/CheckoutWindow";
-import CreateBooking from "../components/Bookings/CreateBooking";
+import CreateClass from "../components/Bookings/CreateClass";
 import PaymentBody from "../components/Bookings/PaymentBody";
 import PaymentCompletion from "../components/Bookings/PaymentCompletion";
 import PaymentHeader from "../components/Bookings/PaymentHeader";
@@ -259,7 +259,7 @@ const BookingsPage = () => {
                 value={value}
               />
 
-              <CreateBooking
+              <CreateClass
                 handleAddBooking={(booking) => {
                   console.log("create booking: ", booking);
                   if (!classes) {

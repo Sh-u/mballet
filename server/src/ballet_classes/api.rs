@@ -3,7 +3,7 @@ use crate::{
     bookings::model::Booking,
     db::connection,
     error_handler::CustomError,
-    schema::{ballet_classes, users},
+    schema::{ballet_classes, bookings, users},
     users::model::User,
 };
 use chrono::Utc;
@@ -26,6 +26,10 @@ impl ClassName {
         match input {
             "One_On_One" => Ok(ClassName::One_On_One),
             "Beginners_Online" => Ok(ClassName::Beginners_Online),
+            "Course_Beginners_Level_One" => Ok(ClassName::Course_Beginners_Level_One),
+            "Course_Beginners_Level_One_Seniors" => {
+                Ok(ClassName::Course_Beginners_Level_One_Seniors)
+            }
             _ => Err(CustomError::new(400, "Invalid lesson type input.")),
         }
     }
@@ -169,6 +173,11 @@ impl BalletClass {
             AND ballet_classes.class_name='one_on_one'",
             )
             .load::<BalletClass>(&conn)?),
+            ClassName::Course_Beginners_Level_One => Ok(ballet_classes::table
+                .left_join(bookings::table)
+                .select(ballet_classes::all_columns)
+                .filter(ballet_classes::class_name.eq(class_name))
+                .get_results(&conn)?),
             _ => Err(CustomError::new(
                 400,
                 "This lesson is not available for purchase.",

@@ -16,6 +16,8 @@ const MapToDbName = (input: string) => {
             return "Intermediate_Online";
         case "Private Online":
             return "Private_Online";
+        case "Course Beginners (Level One)":
+            return "Course_Beginners_Level_One"
         default:
             return "";
     }

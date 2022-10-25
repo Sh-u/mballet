@@ -11,14 +11,14 @@ import {
 interface CheckoutWindowProps {
   theme: MantineTheme;
   course_name: string | string[] | undefined;
-
-  coursePrice: string | null;
+  sessions: number;
+  coursePrice: string | null | number;
 }
 
 const CourseCheckoutWindow = ({
   theme,
   course_name,
-
+  sessions,
   coursePrice,
 }: CheckoutWindowProps) => {
   return (
@@ -43,7 +43,7 @@ const CourseCheckoutWindow = ({
       </Group>
       <Group position="apart">
         <Text size={"xl"}>Sessions</Text>
-        <Text size={"xl"}>8</Text>
+        <Text size={"xl"}>{sessions}</Text>
       </Group>
       <Divider />
       <Anchor>Enter coupon code</Anchor>

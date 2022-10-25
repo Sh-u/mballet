@@ -9,15 +9,15 @@ import MapToDbName from "../../utils/mapToDbName";
 import me from "../../utils/me";
 import { BalletClass } from "../../pages/bookings";
 
-interface CreateBookingProps {
+interface CreateClassProps {
   handleSetAlertInfo: (type: AlertState, message: string) => void;
   handleAddBooking: (booking: BalletClass) => void;
 }
 
-const CreateBooking = ({
+const CreateClass = ({
   handleSetAlertInfo,
   handleAddBooking,
-}: CreateBookingProps) => {
+}: CreateClassProps) => {
   const [render, setRender] = useState(false);
   const [date, setDate] = useState<Date | null>(new Date());
   const selectRef = useRef<HTMLSelectElement>(null);
@@ -107,6 +107,7 @@ const CreateBooking = ({
             "Beginners (Online)",
             "Intermediate (Online)",
             "Private Online",
+            "Course Beginners (Level One)",
           ]}
           placeholder="Pick a lesson type"
           label="Lesson Type"
@@ -118,4 +119,4 @@ const CreateBooking = ({
   );
 };
 
-export default CreateBooking;
+export default CreateClass;
