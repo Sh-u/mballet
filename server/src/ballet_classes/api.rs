@@ -7,7 +7,7 @@ use crate::{
     users::model::User,
 };
 use chrono::Utc;
-use diesel::{prelude::*, sql_query};
+use diesel::{prelude::*, sql_query, BelongingToDsl};
 use uuid::Uuid;
 
 impl ClassType {
@@ -127,6 +127,19 @@ impl BalletClass {
         Ok(class)
     }
 
+    pub fn get_all_booked_by_user(user_id: i32) -> Result<Vec<BalletClass>, CustomError> {
+        let bookings = Booking::get_all_by_user_id(user_id)?;
+        let conn = connection()?;
+
+        let classes = ballet_classes::table
+            .left_join(bookings::table)
+            .select(ballet_classes::all_columns)
+            .filter(bookings::ballet_class.eq(ballet_classes::id))
+            .order(ballet_classes::class_date)
+            .load::<BalletClass>(&conn)?;
+        Ok(classes)
+    }
+
     pub fn get_one(class_id: Uuid) -> Result<BalletClass, CustomError> {
         let conn = connection()?;
 
@@ -173,11 +186,38 @@ impl BalletClass {
             AND ballet_classes.class_name='one_on_one'",
             )
             .load::<BalletClass>(&conn)?),
-            ClassName::Course_Beginners_Level_One => Ok(ballet_classes::table
-                .left_join(bookings::table)
-                .select(ballet_classes::all_columns)
-                .filter(ballet_classes::class_name.eq(class_name))
-                .get_results(&conn)?),
+            ClassName::Course_Beginners_Level_One => {
+                // let classes = ballet_classes::table.load::<BalletClass>(&conn)?;
+
+                // let classes: Vec<BalletClass> = ballet_classes::table
+                //     .left_join(bookings::table)
+                //     .select(ballet_classes::all_columns)
+                //     .filter(ballet_classes::class_name.eq(class_name))
+                //     .order(ballet_classes::class_date)
+                //     .get_results(&conn)?;
+
+                // let bookings: Vec<Vec<Booking>> = Booking::belonging_to(&classes)
+                //     .load::<Booking>(&conn)?
+                //     .grouped_by(&classes);
+
+                // let classes = classes
+                // .into_iter()
+                // .filter(|&(i, class)| bookings.get(0)
+                // .and_then(|bs| if let Some(b) = bs.get(i) {
+                //     return b.len() as i32 < class.slots as i32;
+                // }))
+
+                return Ok(sql_query(
+                    "select ballet_classes.* 
+                    from ballet_classes 
+                    left join bookings on ballet_classes.id=bookings.ballet_class 
+                    GROUP BY ballet_classes.id having COUNT(bookings.id) < ballet_classes.slots 
+                    AND ballet_classes.class_name='course_beginners_level_one'
+                    AND ballet_classes.class_date >= now() 
+                    order by ballet_classes.class_date",
+                )
+                .load::<BalletClass>(&conn)?);
+            }
             _ => Err(CustomError::new(
                 400,
                 "This lesson is not available for purchase.",

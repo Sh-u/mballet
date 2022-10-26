@@ -1,5 +1,6 @@
 use actix_session::Session;
 use actix_web::{get, post, web, HttpResponse};
+use serde_json::json;
 use uuid::Uuid;
 
 use crate::{
@@ -32,6 +33,22 @@ pub async fn get_all_available_by_name(
     let classes = BalletClass::get_all_available_by_name(&class_name.into_inner())?;
 
     Ok(HttpResponse::Ok().json(classes))
+}
+
+#[get("/classes/booked_by/{userId}")]
+pub async fn get_all_booked_by_user(user_Id: web::Path<i32>) -> Result<HttpResponse, CustomError> {
+    let classes = BalletClass::get_all_booked_by_user(user_Id.into_inner())?;
+
+    Ok(HttpResponse::Ok().json(classes))
+}
+
+#[get("/classes/sold_out/{class_name}")]
+pub async fn check_sold_out_by_name(
+    class_name: web::Path<String>,
+) -> Result<HttpResponse, CustomError> {
+    let classes = BalletClass::get_all_available_by_name(&class_name.into_inner())?;
+    let sold_out = classes.is_empty();
+    Ok(HttpResponse::Ok().json(json!({ "soldOut": sold_out })))
 }
 
 #[get("/classes")]
@@ -84,4 +101,6 @@ pub fn init_routes(config: &mut web::ServiceConfig) {
     config.service(create);
     config.service(get_price);
     config.service(get_course_price);
+    config.service(check_sold_out_by_name);
+    config.service(get_all_booked_by_user);
 }

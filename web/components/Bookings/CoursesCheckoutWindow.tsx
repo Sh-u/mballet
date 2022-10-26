@@ -25,6 +25,7 @@ const CourseCheckoutWindow = ({
     <Stack
       p="xl"
       sx={(theme) => ({
+        height: "fit-content",
         border: `1px solid ${
           theme.colorScheme === "dark"
             ? theme.colors.dark[4]

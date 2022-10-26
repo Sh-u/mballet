@@ -30,7 +30,14 @@ pub enum ClassName {
     Course_Beginners_Level_One_Seniors,
 }
 #[derive(
-    Serialize, Deserialize, Queryable, Insertable, Identifiable, Associations, QueryableByName,
+    Serialize,
+    Deserialize,
+    Queryable,
+    Insertable,
+    Identifiable,
+    Associations,
+    QueryableByName,
+    Debug,
 )]
 #[table_name = "ballet_classes"]
 pub struct BalletClass {

@@ -4,9 +4,14 @@ import Footer from "../components/Footer";
 import CourseCard from "../components/Classes/CourseCard";
 import MainContentWrapper from "../components/MainContentWrapper";
 import Navbar from "../components/Navbar";
+import Courses from "../components/Classes/Courses";
+import { useEffect, useState } from "react";
+import checkSoldOutByName from "../utils/requests/bookings/checkSoldOutByName";
+import { CourseNames, getDbCourseName } from "./courses";
 
 const ClassesPage = () => {
   const theme = useMantineTheme();
+
   return (
     <>
       <Navbar theme={theme} />
@@ -44,34 +49,7 @@ const ClassesPage = () => {
               },
             }}
           >
-            <CourseCard
-              theme={theme}
-              onTop={false}
-              title={"Beginners"}
-              price={"30$"}
-              body={"Lorem ipsum dolor sit amet, consectetur adipiscing elit."}
-              checks={["Online", "8 Weeks Course"]}
-              url={"BeginnersOnline"}
-            />
-            <CourseCard
-              theme={theme}
-              onTop={true}
-              title={"One on One"}
-              price={"55$"}
-              body={"Lorem ipsum dolor sit amet, consectetur adipiscing elit."}
-              checks={["Online", "8 Weeks Course"]}
-              url={"OneOnOne"}
-            />
-
-            <CourseCard
-              theme={theme}
-              onTop={false}
-              title={"Intermediate"}
-              price={"45$"}
-              body={"Lorem ipsum dolor sit amet, consectetur adipiscing elit."}
-              checks={["Online", "8 Weeks Course"]}
-              url={"IntermediateOnline"}
-            />
+            <Courses theme={theme} />
           </Group>
 
           <Stack
@@ -100,7 +78,7 @@ const ClassesPage = () => {
           >
             <ClassCard
               theme={theme}
-              price={"45$"}
+              price={"15£"}
               title={"BEGINNERS"}
               body={
                 "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis pulvinar."
@@ -109,7 +87,7 @@ const ClassesPage = () => {
             />
             <ClassCard
               theme={theme}
-              price={"55$"}
+              price={"35£"}
               title={"ONE ON ONE"}
               body={
                 "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis pulvinar."
@@ -118,12 +96,12 @@ const ClassesPage = () => {
             />
             <ClassCard
               theme={theme}
-              price={"45$"}
+              price={"20£"}
               title={"INTERMEDIATE"}
               body={
                 "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis pulvinar."
               }
-              href={"/bookings?lesson=BeginnersOnline"}
+              href={"/bookings?class=intermediate-online"}
             />
           </Group>
         </Stack>

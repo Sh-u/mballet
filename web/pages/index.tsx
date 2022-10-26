@@ -33,6 +33,7 @@ import NewsCardPreview from "../components/NewsCardPreview";
 import TestimonialCard from "../components/TestimonialCard";
 import { Posts } from "../types";
 import getAllPosts from "../utils/getAllPosts";
+import Courses from "../components/Classes/Courses";
 
 const Home = () => {
   const [isLoading, setLoading] = useState(false);
@@ -403,34 +404,7 @@ const Home = () => {
             },
           }}
         >
-          <CourseCard
-            theme={theme}
-            onTop={false}
-            title={"Beginners"}
-            price={"45$"}
-            body={"Lorem ipsum lorem ipsum lorem ipsum lorem ipsum "}
-            checks={["Online", "8 Weeks Course"]}
-            url={"BeginnersOnline"}
-          />
-          <CourseCard
-            theme={theme}
-            onTop={true}
-            title={"One on One"}
-            price={"55$"}
-            body={"Lorem ipsum lorem ipsum lorem ipsum"}
-            checks={["Online", "8 Weeks Course"]}
-            url={"OneOnOne"}
-          />
-
-          <CourseCard
-            theme={theme}
-            onTop={false}
-            title={"Intermediate"}
-            price={"45$"}
-            body={"Lorem ipsum lorem ipsum lorem ipsum"}
-            checks={["Online", "8 Weeks Course"]}
-            url={"IntermediateOnline"}
-          />
+          <Courses theme={theme} />
         </Group>
       </Stack>
 

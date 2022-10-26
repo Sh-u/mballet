@@ -6,6 +6,7 @@ import {
   Stack,
   Title,
   useMantineTheme,
+  Text,
 } from "@mantine/core";
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 import { useRouter } from "next/router";
@@ -19,17 +20,19 @@ import Navbar from "../components/Navbar";
 import me from "../utils/me";
 import { initialOptions } from "../utils/paypalInitialOptions";
 import createOrder from "../utils/requests/bookings/createOrder";
-import getAllAvailableClassesByName from "../utils/requests/bookings/getAllAvailableClassesByName";
+import getAllAvailableClassesByName, {
+  SwrError,
+} from "../utils/requests/bookings/getAllAvailableClassesByName";
 import { getClassesPrice } from "../utils/requests/bookings/getClassesPrice";
 import { getCoursesPrice } from "../utils/requests/bookings/getCoursesPrice";
 import onApprove from "../utils/requests/bookings/onApprove";
 import { BalletClass, RenderState } from "./bookings";
-enum CourseNames {
+export enum CourseNames {
   BeginnersLevelOne = "beginners-level-one",
   BeginnersLevelOneSeniors = "beginners-level-one-seniors",
 }
 
-const getDbCourseName = (course: CourseNames): string => {
+export const getDbCourseName = (course: CourseNames): string => {
   switch (course) {
     case CourseNames.BeginnersLevelOne:
       return "Course_Beginners_Level_One";
@@ -95,16 +98,24 @@ const CoursesPage = () => {
     getDbCourseName(course_query as CourseNames)
   );
 
-  const { data: courseClasses } = useSwr<BalletClass[], any>(
-    course_query ? fetchUrl : null,
-    fetcher
-  );
+  const {
+    data: courseClasses,
+    error,
+    isValidating,
+  } = useSwr<BalletClass[], SwrError>(course_query ? fetchUrl : null, fetcher);
 
   const handleApprovedPayment = () => {
     setRenderState(RenderState.paymentCompleted);
   };
 
-  if (!courseClasses) {
+  useEffect(() => {
+    if (error || (courseClasses && !courseClasses.length)) {
+      router.push("/classes");
+      return;
+    }
+  }, [error, router, courseClasses]);
+
+  if (!courseClasses || courseClasses.length < 1 || error) {
     return (
       <Center
         sx={{
@@ -135,37 +146,43 @@ const CoursesPage = () => {
             }}
           >
             <Stack>
-              <Title>PAYMENT</Title>
               {renderState === RenderState.payment ? (
-                <PayPalScriptProvider options={initialOptions}>
-                  <PayPalButtons
-                    style={{
-                      layout: "vertical",
-                      color: "black",
-                      tagline: false,
-                    }}
-                    createOrder={(data, actions) => {
-                      return createOrder({
-                        class_id: courseClasses?.map((c) => c.id as string),
-                        // user_id: 1,
-                      })
-                        .then((response) => response.json())
-                        .then((order) => order.id);
-                    }}
-                    onApprove={(data, actions) => {
-                      return onApprove(data.orderID)
-                        .then((response) => response.json())
-                        .then((orderData) => {
-                          console.log(
-                            "Capture result",
-                            orderData,
-                            JSON.stringify(orderData, null, 2)
-                          );
-                          handleApprovedPayment();
-                        });
-                    }}
-                  />
-                </PayPalScriptProvider>
+                <>
+                  <Title>1. INFO</Title>
+                  <Text>
+                    {courseClasses?.length} sessions taking place at X-STUDIO
+                  </Text>
+                  <Title>2. PAYMENT</Title>
+                  <PayPalScriptProvider options={initialOptions}>
+                    <PayPalButtons
+                      style={{
+                        layout: "vertical",
+                        color: "black",
+                        tagline: false,
+                      }}
+                      createOrder={(data, actions) => {
+                        return createOrder({
+                          class_id: courseClasses?.map((c) => c.id as string),
+                          // user_id: 1,
+                        })
+                          .then((response) => response.json())
+                          .then((order) => order.id);
+                      }}
+                      onApprove={(data, actions) => {
+                        return onApprove(data.orderID)
+                          .then((response) => response.json())
+                          .then((orderData) => {
+                            console.log(
+                              "Capture result",
+                              orderData,
+                              JSON.stringify(orderData, null, 2)
+                            );
+                            handleApprovedPayment();
+                          });
+                      }}
+                    />
+                  </PayPalScriptProvider>
+                </>
               ) : (
                 <PaymentCompletion />
               )}

@@ -118,6 +118,9 @@ function MyApp({ Component, pageProps }: AppProps) {
             lg: 1200,
             xl: 1400,
           },
+          fontSizes: {
+            xxl: 64,
+          },
         }}
       >
         <RecoilRoot>

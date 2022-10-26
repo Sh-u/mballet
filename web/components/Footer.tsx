@@ -24,7 +24,6 @@ const Footer = ({ theme }: FooterProps) => {
   return (
     <>
       <Box
-        data-aos="fade"
         sx={{
           width: "100%",
         }}

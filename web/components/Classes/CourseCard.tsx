@@ -10,6 +10,8 @@ interface CourseCardProps {
   body: string;
   checks: string[];
   url: string;
+  oldPrice?: string;
+  soldOut?: boolean;
 }
 const CourseCard = ({
   theme,
@@ -19,6 +21,8 @@ const CourseCard = ({
   body,
   checks,
   url,
+  oldPrice,
+  soldOut,
 }: CourseCardProps) => {
   const router = useRouter();
   return (
@@ -31,10 +35,11 @@ const CourseCard = ({
           padding: "30px 10px",
           width: "80%",
           height: "465px",
+          gap: "12px",
           [`@media (min-width: ${theme.breakpoints.sm}px)`]: {
             height: onTop ? "525px" : "465px",
             width: "33%",
-            padding: "50px 30px",
+            padding: "30px 30px",
             boxShadow: onTop ? "0px 10px 45px -5px rgb(0 0 0 / 14%);" : "unset",
             transform: onTop ? "translateY(-10px)" : "unset",
           },
@@ -46,6 +51,9 @@ const CourseCard = ({
             gap: 2,
           }}
         >
+          <Title color={theme.colors.red[9]} strikethrough>
+            {oldPrice}
+          </Title>
           <Title
             sx={{
               fontSize: "64px",
@@ -53,7 +61,6 @@ const CourseCard = ({
           >
             {price}
           </Title>
-          <Title order={4}> / hour</Title>
         </Group>
 
         <Text
@@ -75,10 +82,14 @@ const CourseCard = ({
         </Stack>
 
         <Button
-          onClick={() => router.push(`/bookings?lesson=${url}`)}
-          rightIcon={<IconArrowRight size={14} />}
+          sx={{
+            minWidth: "120px",
+          }}
+          onClick={() => router.push(`/courses?course=${url}`)}
+          rightIcon={soldOut ? null : <IconArrowRight size={14} />}
+          disabled={soldOut}
         >
-          Book now
+          {soldOut ? "Sold Out" : "Book Now"}
         </Button>
       </Stack>
     </>
