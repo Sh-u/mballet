@@ -51,7 +51,7 @@ const AboutUs = ({ theme }: AboutUsProps) => {
             },
           }}
         >
-          <Title>About Us</Title>
+          <Title size={48}>About Us</Title>
           <Text
             sx={{
               fontSize: "16px",

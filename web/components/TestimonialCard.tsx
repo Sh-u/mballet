@@ -1,9 +1,15 @@
-import { Avatar, MantineTheme, Stack, Text, Title } from "@mantine/core";
-import { IconQuote } from "@tabler/icons";
+import {
+  Avatar,
+  MantineTheme,
+  Stack,
+  Text,
+  Title,
+  useMantineTheme,
+} from "@mantine/core";
+import { ImQuotesRight } from "react-icons/im";
 import { motion } from "framer-motion";
 
 interface TestimonialCardProps {
-  theme: MantineTheme;
   name: string;
   description: string;
   body: string;
@@ -12,7 +18,6 @@ interface TestimonialCardProps {
 }
 
 const TestimonialCard = ({
-  theme,
   name,
   description,
   body,
@@ -20,6 +25,7 @@ const TestimonialCard = ({
   position,
 }: TestimonialCardProps) => {
   console.log("position", position);
+  const theme = useMantineTheme();
 
   return (
     <>
@@ -40,13 +46,13 @@ const TestimonialCard = ({
           align={"center"}
           sx={{
             backgroundColor: theme.colors.gray[1],
-            maxWidth: "80%",
+            maxWidth: "100%",
             borderRadius: "16px",
             padding: "20px",
             position: "relative",
             margin: "auto",
             [`@media (min-width: ${theme.breakpoints.xs}px)`]: {
-              maxWidth: "60%",
+              maxWidth: "70%",
             },
           }}
         >
@@ -74,8 +80,9 @@ const TestimonialCard = ({
           </Text>
 
           <Text
+            p="10px"
             sx={{
-              fontSize: "16px",
+              fontSize: "18px",
               textAlign: "center",
               fontStyle: "italic",
               color: theme.colors.gray[7],
@@ -83,7 +90,7 @@ const TestimonialCard = ({
           >
             {body}
           </Text>
-          <IconQuote size={64} />
+          <ImQuotesRight size={32} />
         </Stack>
       </motion.div>
     </>

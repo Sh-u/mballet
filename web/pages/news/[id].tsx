@@ -13,11 +13,11 @@ import { useRouter } from "next/router";
 import Footer from "../../components/Footer";
 import MainContentWrapper from "../../components/MainContentWrapper";
 import Navbar from "../../components/Navbar";
-import { Posts } from "../../types";
+import { Post } from "../../types";
 import { defaultNewsImage } from "../../utils/defaultNewsImage";
 import getOnePost from "../../utils/getOnePost";
 
-const FullPostPage = (props: Posts) => {
+const FullPostPage = (props: Post) => {
   const router = useRouter();
   const theme = useMantineTheme();
   console.log(props);

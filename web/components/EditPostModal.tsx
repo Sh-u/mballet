@@ -14,14 +14,14 @@ import { IconPhoto } from "@tabler/icons";
 
 import { Form, Formik } from "formik";
 import { useState } from "react";
-import { Posts } from "../types";
+import { Post } from "../types";
 import updatePost from "../utils/updatePost";
 
 interface EditPostModalProps {
   refreshData: () => void;
   editModalOpen: boolean;
   setEditModalOpen: (v: boolean) => void;
-  post: Posts;
+  post: Post;
   theme: MantineTheme;
 }
 

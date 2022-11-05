@@ -1,4 +1,4 @@
-export type Posts = {
+export type Post = {
   id: number;
   title: string;
   body: string;
@@ -7,7 +7,7 @@ export type Posts = {
   created_at: string;
 }
 
-export type Post = {
+export type PostInfo = {
   title: string;
   body: string;
   published: boolean;
@@ -17,7 +17,7 @@ export type Post = {
 export interface DropdownProps {
   postId: number,
   refreshData: () => void
-  post?: Post,
+  post?: PostInfo,
 }
 
 

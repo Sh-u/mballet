@@ -83,6 +83,7 @@ const NewsCardPreview = ({
               "&:hover": {
                 color: theme.colors.main[3],
               },
+              fontWeight: "bold",
             }}
           >
             Learn more...

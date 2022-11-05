@@ -41,7 +41,7 @@ const Footer = ({ theme }: FooterProps) => {
               justifyContent: "space-around",
               alignItems: "start",
               flexWrap: "wrap",
-              padding: "20px",
+
               [`@media (min-width: ${theme.breakpoints.xs}px)`]: {
                 flexWrap: "nowrap",
               },
@@ -50,10 +50,13 @@ const Footer = ({ theme }: FooterProps) => {
             <Stack
               sx={{
                 justifyContent: "center",
-                alignItems: "start",
+                alignItems: "center",
                 width: "80%",
+                textAlign: "center",
                 [`@media (min-width: ${theme.breakpoints.xs}px)`]: {
                   width: "33%",
+                  alignItems: "start",
+                  textAlign: "unset",
                 },
               }}
             >
@@ -70,10 +73,11 @@ const Footer = ({ theme }: FooterProps) => {
             <Stack
               sx={{
                 justifyContent: "center",
-                alignItems: "start",
+                alignItems: "center",
                 width: "80%",
                 [`@media (min-width: ${theme.breakpoints.xs}px)`]: {
                   width: "33%",
+                  alignItems: "start",
                 },
               }}
             >
@@ -103,16 +107,25 @@ const Footer = ({ theme }: FooterProps) => {
             <Stack
               sx={{
                 justifyContent: "center",
-                alignItems: "start",
+
+                alignItems: "center",
                 width: "80%",
                 [`@media (min-width: ${theme.breakpoints.xs}px)`]: {
                   width: "33%",
+                  alignItems: "start",
                 },
               }}
             >
               <Title>WORK HOURS</Title>
               <Text>7 AM - 5 PM, Mon - Sat</Text>
-              <Text>
+              <Text
+                sx={{
+                  textAlign: "center",
+                  [`@media (min-width: ${theme.breakpoints.xs}px)`]: {
+                    textAlign: "unset",
+                  },
+                }}
+              >
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit.
               </Text>
               <Button rightIcon={<IconArrowRight size={14} />}>Call Now</Button>

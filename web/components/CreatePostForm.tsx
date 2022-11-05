@@ -13,13 +13,13 @@ import {
 import { IconPhoto } from "@tabler/icons";
 import { Form, Formik } from "formik";
 import { useState } from "react";
-import { Post } from "../types";
+import { PostInfo } from "../types";
 import createPost from "../utils/createPost";
 import AddFile from "./AddFile";
 
 interface CreatePostFormProps {
   refreshData: () => void;
-  post?: Post;
+  post?: PostInfo;
   theme: MantineTheme;
 }
 

@@ -1,4 +1,4 @@
-import { Post } from "../types";
+import { PostInfo } from "../types";
 
 
 const updatePost = async (postId: number, body: FormData): Promise<Response> => {

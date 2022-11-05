@@ -1,29 +1,32 @@
 import {
   Box,
   Center,
+  Group,
   Loader,
   SimpleGrid,
   Stack,
-  useMantineTheme,
-  Title,
-  Text,
   Tabs,
+  Text,
+  Title,
+  useMantineTheme,
 } from "@mantine/core";
-import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
-import me from "../utils/me";
-import getUserBookings from "../utils/requests/bookings/getUserBookings";
 import dayjs from "dayjs";
-import { BalletClass } from "./bookings";
-import Navbar from "../components/Navbar";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 import Footer from "../components/Footer";
 import MainContentWrapper from "../components/MainContentWrapper";
+import Navbar from "../components/Navbar";
+import me from "../utils/me";
+import getUserBookings from "../utils/requests/bookings/getUserBookings";
 import getUserClasses from "../utils/requests/bookings/getUserClasses";
+import { BalletClass } from "./bookings";
 interface Booking {
   id: number;
   booked_at: Date;
   booked_by: string;
 }
+
+const testt = false;
 
 const ProfilePage = () => {
   const router = useRouter();
@@ -79,6 +82,7 @@ const ProfilePage = () => {
     checkLogged().catch(console.error);
   }, [router]);
 
+  console.log(classes);
   if (isLoading) {
     return (
       <Center
@@ -93,49 +97,61 @@ const ProfilePage = () => {
 
   return (
     <>
-      <Navbar theme={theme} />
-      <MainContentWrapper theme={theme}>
-        <Stack
-          m="auto"
-          sx={{
-            maxWidth: "70rem",
-          }}
-        >
-          <Title>Manage Your Bookings </Title>
-          <Text>
-            View, reschedule or cancel your bookings and easily book again.
-          </Text>
-          <Text>Time Zone: British Summer Time (GMT+1)</Text>
-          <Tabs
-            value={activeTab}
-            onTabChange={setActiveTab}
+      <SimpleGrid
+        sx={{
+          height: "100%",
+          gridTemplateRows: "auto 1fr auto",
+        }}
+      >
+        <Navbar theme={theme} />
+        <MainContentWrapper theme={theme}>
+          <Stack
+            m="auto"
+            p="20px"
             sx={{
-              fontSize: "16px",
+              maxWidth: "70rem",
+
+              [`@media (min-width: ${theme.breakpoints.xs}px)`]: {
+                padding: 0,
+              },
             }}
           >
-            <Tabs.List>
-              <Tabs.Tab
-                sx={{
-                  fontSize: "24px",
-                }}
-                value="Upcoming"
-              >
-                Upcoming
-              </Tabs.Tab>
-              <Tabs.Tab
-                value="History"
-                sx={{
-                  fontSize: "24px",
-                }}
-              >
-                History
-              </Tabs.Tab>
-            </Tabs.List>
+            <Title size={48}>Manage Your Bookings </Title>
+            <Text>
+              View, reschedule or cancel your bookings and easily book again.
+            </Text>
+            <Text>Time Zone: British Summer Time (GMT+1)</Text>
+            <Tabs
+              value={activeTab}
+              onTabChange={setActiveTab}
+              sx={{
+                fontSize: "16px",
+              }}
+            >
+              <Tabs.List>
+                <Tabs.Tab
+                  p="20px"
+                  sx={{
+                    fontSize: "24px",
+                  }}
+                  value="Upcoming"
+                >
+                  Upcoming
+                </Tabs.Tab>
+                <Tabs.Tab
+                  p="20px"
+                  value="History"
+                  sx={{
+                    fontSize: "24px",
+                  }}
+                >
+                  History
+                </Tabs.Tab>
+              </Tabs.List>
 
-            <Tabs.Panel value="Upcoming">
-              {" "}
-              {classes
-                ? classes[0]?.map((c, i) => (
+              <Tabs.Panel value="Upcoming">
+                {classes && classes[0].length > 0 ? (
+                  classes[0]?.map((c, i) => (
                     <Box
                       key={`${c.id}${i}`}
                       sx={{
@@ -155,15 +171,26 @@ const ProfilePage = () => {
                       <Text size="sm">{c.class_name}</Text>
                     </Box>
                   ))
-                : null}
-            </Tabs.Panel>
-            <Tabs.Panel value="History">
-              We’re looking forward to meeting you.
-            </Tabs.Panel>
-          </Tabs>
-        </Stack>
-      </MainContentWrapper>
-      <Footer theme={theme} />
+                ) : (
+                  <Group p="20px" position="center">
+                    <Text size={32} weight="normal">
+                      You've got nothing booked at the moment.
+                    </Text>
+                  </Group>
+                )}
+              </Tabs.Panel>
+              <Tabs.Panel value="History">
+                <Group p="20px" position="center">
+                  <Text size={32} weight="normal">
+                    We’re looking forward to meeting you.
+                  </Text>
+                </Group>
+              </Tabs.Panel>
+            </Tabs>
+          </Stack>
+        </MainContentWrapper>
+        <Footer theme={theme} />
+      </SimpleGrid>
     </>
   );
 };
