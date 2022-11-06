@@ -20,6 +20,9 @@ import me from "../utils/me";
 import getUserBookings from "../utils/requests/bookings/getUserBookings";
 import getUserClasses from "../utils/requests/bookings/getUserClasses";
 import { BalletClass } from "./bookings";
+
+import utc from "dayjs/plugin/utc";
+
 interface Booking {
   id: number;
   booked_at: Date;
@@ -57,11 +60,12 @@ const ProfilePage = () => {
       let upcoming: BalletClass[] = [],
         history: BalletClass[] = [];
 
-      items.forEach((item) =>
-        new Date(item.class_date) < new Date()
+      items.forEach((item) => {
+        Date.parse(item.class_date) <
+        Date.parse(dayjs.utc(new Date()).format("YYYY-MM-DDTHH:mm:ss"))
           ? history.push(item)
-          : upcoming.push(item)
-      );
+          : upcoming.push(item);
+      });
 
       setClasses([upcoming, history]);
     };
@@ -153,6 +157,7 @@ const ProfilePage = () => {
                 {classes && classes[0].length > 0 ? (
                   classes[0]?.map((c, i) => (
                     <Box
+                      py="10px"
                       key={`${c.id}${i}`}
                       sx={{
                         fontSize: "20px",
@@ -174,7 +179,7 @@ const ProfilePage = () => {
                 ) : (
                   <Group p="20px" position="center">
                     <Text size={32} weight="normal">
-                      You've got nothing booked at the moment.
+                      You`ve got nothing booked at the moment.
                     </Text>
                   </Group>
                 )}
@@ -182,7 +187,7 @@ const ProfilePage = () => {
               <Tabs.Panel value="History">
                 <Group p="20px" position="center">
                   <Text size={32} weight="normal">
-                    We’re looking forward to meeting you.
+                    We`re looking forward to meeting you.
                   </Text>
                 </Group>
               </Tabs.Panel>
