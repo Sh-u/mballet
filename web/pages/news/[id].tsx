@@ -1,5 +1,4 @@
 import {
-  Box,
   Button,
   Image,
   Stack,
@@ -7,7 +6,7 @@ import {
   Title,
   useMantineTheme,
 } from "@mantine/core";
-import { IconArrowRight } from "@tabler/icons";
+import { IconArrowBack } from "@tabler/icons";
 import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
 import Footer from "../../components/Footer";
@@ -27,17 +26,19 @@ const FullPostPage = (props: Post) => {
       <Navbar theme={theme} />
       <MainContentWrapper theme={theme}>
         <Stack
+          p="10px"
           sx={{
             maxWidth: "70rem",
             margin: "30px auto auto auto",
+            [`@media (min-width: ${theme.breakpoints.lg}px)`]: {
+              padding: 0,
+            },
           }}
         >
           <Button
-            rightIcon={<IconArrowRight size={14} />}
+            sx={{ width: "fit-content" }}
+            leftIcon={<IconArrowBack />}
             onClick={() => router.back()}
-            sx={{
-              width: "fit-content",
-            }}
           >
             Back
           </Button>
@@ -48,9 +49,11 @@ const FullPostPage = (props: Post) => {
           >
             {props.title}
           </Title>
+
           <Image
-            width={"70rem"}
-            height={"40rem"}
+            width={"100%"}
+            height={"100%"}
+            sx={{}}
             alt={props.title}
             src={
               props.img
@@ -58,6 +61,7 @@ const FullPostPage = (props: Post) => {
                 : defaultNewsImage
             }
           />
+
           <Text>{props.body}</Text>
         </Stack>
       </MainContentWrapper>

@@ -11,6 +11,7 @@ import {
   useMantineTheme,
 } from "@mantine/core";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import Footer from "../components/Footer";
@@ -21,15 +22,13 @@ import getUserBookings from "../utils/requests/bookings/getUserBookings";
 import getUserClasses from "../utils/requests/bookings/getUserClasses";
 import { BalletClass } from "./bookings";
 
-import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
 
 interface Booking {
   id: number;
   booked_at: Date;
   booked_by: string;
 }
-
-const testt = false;
 
 const ProfilePage = () => {
   const router = useRouter();
@@ -111,11 +110,11 @@ const ProfilePage = () => {
         <MainContentWrapper theme={theme}>
           <Stack
             m="auto"
-            p="20px"
+            p="10px"
             sx={{
               maxWidth: "70rem",
 
-              [`@media (min-width: ${theme.breakpoints.xs}px)`]: {
+              [`@media (min-width: ${theme.breakpoints.lg}px)`]: {
                 padding: 0,
               },
             }}
@@ -185,11 +184,35 @@ const ProfilePage = () => {
                 )}
               </Tabs.Panel>
               <Tabs.Panel value="History">
-                <Group p="20px" position="center">
-                  <Text size={32} weight="normal">
-                    We`re looking forward to meeting you.
-                  </Text>
-                </Group>
+                {classes && classes[1].length > 0 ? (
+                  classes[1]?.map((c, i) => (
+                    <Box
+                      py="10px"
+                      key={`${c.id}${i}`}
+                      sx={{
+                        fontSize: "20px",
+                        "&:hover": {
+                          backgroundColor: theme.colors.gray[2],
+                        },
+                      }}
+                    >
+                      {dayjs(c.class_date)
+                        .add(1, "hour")
+                        .toDate()
+                        .toLocaleString("default", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        })}
+                      <Text size="sm">{c.class_name}</Text>
+                    </Box>
+                  ))
+                ) : (
+                  <Group p="20px" position="center">
+                    <Text size={32} weight="normal">
+                      We`re looking forward to meeting you.
+                    </Text>
+                  </Group>
+                )}
               </Tabs.Panel>
             </Tabs>
           </Stack>

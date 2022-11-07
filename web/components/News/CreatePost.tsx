@@ -7,23 +7,22 @@ import {
   MantineTheme,
   Space,
   Stack,
-  Textarea,
   Text,
+  Textarea,
 } from "@mantine/core";
 import { IconPhoto } from "@tabler/icons";
 import { Form, Formik } from "formik";
 import { useState } from "react";
-import { PostInfo } from "../types";
-import createPost from "../utils/createPost";
-import AddFile from "./AddFile";
+import { PostInfo } from "../../types";
+import createPost from "../../utils/createPost";
 
-interface CreatePostFormProps {
+interface CreatePostProps {
   refreshData: () => void;
   post?: PostInfo;
   theme: MantineTheme;
 }
 
-const CreatePostForm = ({ refreshData, theme }: CreatePostFormProps) => {
+const CreatePost = ({ refreshData, theme }: CreatePostProps) => {
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
 
@@ -175,4 +174,4 @@ const CreatePostForm = ({ refreshData, theme }: CreatePostFormProps) => {
   );
 };
 
-export default CreatePostForm;
+export default CreatePost;

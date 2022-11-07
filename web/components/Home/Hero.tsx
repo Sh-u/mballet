@@ -14,7 +14,7 @@ import {
   IconThumbUp,
   IconUserCheck,
 } from "@tabler/icons";
-import Navbar from "../components/Navbar";
+import Navbar from "../Navbar";
 
 interface HeroProps {
   theme: MantineTheme;

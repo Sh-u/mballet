@@ -24,8 +24,12 @@ const Footer = ({ theme }: FooterProps) => {
   return (
     <>
       <Box
+        p="10px"
         sx={{
           width: "100%",
+          [`@media (min-width: ${theme.breakpoints.lg}px)`]: {
+            padding: 0,
+          },
         }}
       >
         <Stack

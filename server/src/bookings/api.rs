@@ -14,6 +14,7 @@ impl Booking {
     pub fn get_all_by_user_id(user_id: i32) -> Result<Vec<Booking>, CustomError> {
         let conn = connection()?;
         let user = users::table.find(user_id).get_result::<User>(&conn)?;
+
         let bookings = Booking::belonging_to(&user).load(&conn)?;
 
         Ok(bookings)

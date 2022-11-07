@@ -14,11 +14,11 @@ import {
 import { upperFirst, useToggle } from "@mantine/hooks";
 import { useFormik } from "formik";
 import { useRouter } from "next/router";
-import { Credentials } from "../types";
-import googleInit from "../utils/googleInit";
-import login from "../utils/login";
-import RegisterRequest from "../utils/RegisterRequest";
-import sendMail from "../utils/sendMail";
+import { Credentials } from "../../types";
+import googleInit from "../../utils/googleInit";
+import login from "../../utils/login";
+import register from "../../utils/register";
+import sendMail from "../../utils/sendMail";
 import { GoogleButton } from "./SocialButtons";
 
 const validate = (values: Credentials, type: string) => {
@@ -71,12 +71,13 @@ export const AuthenticationForm = (props: AuthenticationFormProps) => {
       email: "",
       username: "",
       password: "",
+      auth_type: "STANDARD",
     },
     validate: (values: Credentials) => validate(values, type),
     onSubmit: async (values: Credentials) => {
       console.log("submit");
       if (type === "register") {
-        let createUserResponse = await RegisterRequest(values);
+        let createUserResponse = await register(values);
         if (createUserResponse.status !== 200) {
           let err = await createUserResponse.json();
 

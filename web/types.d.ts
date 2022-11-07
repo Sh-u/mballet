@@ -14,17 +14,11 @@ export type PostInfo = {
 
 }
 
-export interface DropdownProps {
-  postId: number,
-  refreshData: () => void
-  post?: PostInfo,
-}
-
-
 export type Credentials = {
   email: string,
   username: string,
   password: string,
+  auth_type: string
 }
 
 

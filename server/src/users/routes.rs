@@ -1,4 +1,4 @@
-use super::model::{Credentials, UsersApiBody};
+use super::model::{CreateUserInput, Credentials};
 use crate::{
     db::connection,
     error_handler::CustomError,
@@ -21,7 +21,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::{collections::HashMap, str::FromStr};
 #[post("users")]
-async fn create(input: web::Json<UsersApiBody>) -> Result<HttpResponse, CustomError> {
+async fn create(input: web::Json<CreateUserInput>) -> Result<HttpResponse, CustomError> {
     let user = User::create(input.into_inner())?;
 
     Ok(HttpResponse::Ok().json(user))
@@ -30,7 +30,7 @@ async fn create(input: web::Json<UsersApiBody>) -> Result<HttpResponse, CustomEr
 #[put("users/{id}")]
 async fn update(
     id: web::Path<i32>,
-    input: web::Json<UsersApiBody>,
+    input: web::Json<CreateUserInput>,
 ) -> Result<HttpResponse, CustomError> {
     let user = User::update(id.into_inner(), input.into_inner())?;
 
@@ -284,7 +284,7 @@ pub async fn google_auth(
         .filter(users::email.eq(auth_response.email.clone()))
         .get_result::<User>(&conn);
 
-    let input = UsersApiBody {
+    let input = CreateUserInput {
         email: auth_response.email,
         password: "randompass".to_owned(),
         username: auth_response.id,

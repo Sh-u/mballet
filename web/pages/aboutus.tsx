@@ -1,5 +1,5 @@
 import { useMantineTheme, Box } from "@mantine/core";
-import AboutUs from "../components/AboutUs";
+import AboutUs from "../components/AboutUs/AboutUs";
 import Footer from "../components/Footer";
 import MainContentWrapper from "../components/MainContentWrapper";
 import Navbar from "../components/Navbar";

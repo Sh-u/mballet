@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 import { FaFacebook, FaInstagram } from "react-icons/fa";
 import logout from "../utils/logout";
 import me from "../utils/me";
-import MainPageAnchor from "./MainPageAnchor";
+import MainPageAnchor from "./Home/MainPageAnchor";
 
 interface NavbarProps {
   theme: MantineTheme;

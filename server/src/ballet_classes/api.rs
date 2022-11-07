@@ -129,6 +129,7 @@ impl BalletClass {
 
     pub fn get_all_booked_by_user(user_id: i32) -> Result<Vec<BalletClass>, CustomError> {
         let bookings = Booking::get_all_by_user_id(user_id)?;
+        dbg!(bookings);
         let conn = connection()?;
 
         let classes = ballet_classes::table

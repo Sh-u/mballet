@@ -1,17 +1,16 @@
 import {
-  Stack,
-  Group,
-  Title,
-  Button,
   Box,
-  Text,
+  Button,
+  Group,
   MantineTheme,
+  Stack,
+  Text,
+  Title,
 } from "@mantine/core";
 import { IconArrowRight } from "@tabler/icons";
 
 import Link from "next/link";
-import React from "react";
-import { Post } from "../types";
+import { Post } from "../../types";
 import NewsCardPreview from "./NewsCardPreview";
 
 interface NewsProps {

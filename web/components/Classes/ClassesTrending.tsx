@@ -1,8 +1,7 @@
-import { Stack, Group, Title, Button, Text, MantineTheme } from "@mantine/core";
+import { Button, Group, MantineTheme, Stack, Text, Title } from "@mantine/core";
 import { IconArrowRight } from "@tabler/icons";
 import Link from "next/link";
-import React from "react";
-import Courses from "../components/Classes/Courses";
+import Courses from "./Courses";
 
 interface ClassesTrending {
   theme: MantineTheme;

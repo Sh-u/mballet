@@ -1,13 +1,6 @@
-import {
-  Avatar,
-  MantineTheme,
-  Stack,
-  Text,
-  Title,
-  useMantineTheme,
-} from "@mantine/core";
-import { ImQuotesRight } from "react-icons/im";
+import { Avatar, Stack, Text, Title, useMantineTheme } from "@mantine/core";
 import { motion } from "framer-motion";
+import { ImQuotesRight } from "react-icons/im";
 
 interface TestimonialCardProps {
   name: string;

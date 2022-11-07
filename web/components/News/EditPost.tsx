@@ -11,13 +11,12 @@ import {
   Textarea,
 } from "@mantine/core";
 import { IconPhoto } from "@tabler/icons";
-
 import { Form, Formik } from "formik";
 import { useState } from "react";
-import { Post } from "../types";
-import updatePost from "../utils/updatePost";
+import { Post } from "../../types";
+import updatePost from "../../utils/updatePost";
 
-interface EditPostModalProps {
+interface EditPostProps {
   refreshData: () => void;
   editModalOpen: boolean;
   setEditModalOpen: (v: boolean) => void;
@@ -25,13 +24,13 @@ interface EditPostModalProps {
   theme: MantineTheme;
 }
 
-const EditPostModal = ({
+const EditPost = ({
   refreshData,
   post,
   editModalOpen,
   setEditModalOpen,
   theme,
-}: EditPostModalProps) => {
+}: EditPostProps) => {
   const [file, setFile] = useState<File | null>(null);
 
   console.log(post.id);
@@ -161,4 +160,4 @@ const EditPostModal = ({
   );
 };
 
-export default EditPostModal;
+export default EditPost;

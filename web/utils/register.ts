@@ -2,7 +2,8 @@ import { Credentials } from "../types"
 
 
 
-const RegisterRequest = async (credentials: Credentials): Promise<Response> => {
+
+const register = async (credentials: Credentials): Promise<Response> => {
 
     return fetch("http://127.0.0.1:7878/users", {
         method: 'POST',
@@ -15,4 +16,4 @@ const RegisterRequest = async (credentials: Credentials): Promise<Response> => {
 }
 
 
-export default RegisterRequest
+export default register

@@ -36,8 +36,8 @@ pub async fn get_all_available_by_name(
 }
 
 #[get("/classes/booked_by/{userId}")]
-pub async fn get_all_booked_by_user(user_Id: web::Path<i32>) -> Result<HttpResponse, CustomError> {
-    let classes = BalletClass::get_all_booked_by_user(user_Id.into_inner())?;
+pub async fn get_all_booked_by_user(user_id: web::Path<i32>) -> Result<HttpResponse, CustomError> {
+    let classes = BalletClass::get_all_booked_by_user(user_id.into_inner())?;
 
     Ok(HttpResponse::Ok().json(classes))
 }

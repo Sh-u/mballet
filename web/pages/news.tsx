@@ -16,26 +16,22 @@ import dayjs from "dayjs";
 import { InferGetStaticPropsType } from "next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import CreatePostForm from "../components/CreatePostForm";
-import EditPostModal from "../components/EditPostModal";
 import Footer from "../components/Footer";
 import MainContentWrapper from "../components/MainContentWrapper";
 import Navbar from "../components/Navbar";
+import CreatePost from "../components/News/CreatePost";
+import DeletePost from "../components/News/DeletePost";
+import EditPost from "../components/News/EditPost";
 import useCheckAdmin from "../hooks/useCheckAdmin";
-import { PostInfo, Post } from "../types";
-import deletePost from "../utils/deletePost";
+import { Post } from "../types";
 import getAllPosts from "../utils/getAllPosts";
-interface UpdateIconProps {
-  postId: number;
-  newPost: PostInfo;
-  refreshData: () => void;
-}
 
 const News = ({ posts }: InferGetStaticPropsType<typeof getStaticProps>) => {
   const [postIndex, setPostIndex] = useState([0, 5]);
   const [pageIndex, setPageIndex] = useState(1);
 
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [currentPost, setCurrentPost] = useState<Post | null>(null);
 
   const router = useRouter();
@@ -61,16 +57,6 @@ const News = ({ posts }: InferGetStaticPropsType<typeof getStaticProps>) => {
 
   const theme = useMantineTheme();
 
-  const handleDeletePost = async (id: number) => {
-    const response = await deletePost(id);
-
-    if (response.status !== 200) {
-      return;
-    }
-
-    refreshData();
-  };
-
   return (
     <>
       <SimpleGrid
@@ -83,13 +69,13 @@ const News = ({ posts }: InferGetStaticPropsType<typeof getStaticProps>) => {
 
         <MainContentWrapper theme={theme}>
           <Stack
-            py="20px"
+            p="10px"
             sx={{
               maxWidth: "70rem",
 
               marginLeft: "auto",
               marginRight: "auto",
-              padding: "10px",
+
               height: "100%",
               [`@media (min-width: ${theme.breakpoints.lg}px)`]: {
                 padding: 0,
@@ -105,12 +91,12 @@ const News = ({ posts }: InferGetStaticPropsType<typeof getStaticProps>) => {
                 </Text>
               </Stack>
               {render ? (
-                <CreatePostForm refreshData={refreshData} theme={theme} />
+                <CreatePost refreshData={refreshData} theme={theme} />
               ) : null}
             </Group>
 
             {editModalOpen && currentPost ? (
-              <EditPostModal
+              <EditPost
                 theme={theme}
                 post={currentPost}
                 refreshData={refreshData}
@@ -118,90 +104,116 @@ const News = ({ posts }: InferGetStaticPropsType<typeof getStaticProps>) => {
                 setEditModalOpen={setEditModalOpen}
               />
             ) : null}
-            <Group>
-              {posts.length > 0 ? (
-                posts
-                  .filter(
-                    (_, index) => index >= postIndex[0] && index < postIndex[1]
-                  )
-                  .map((p) => (
-                    <Group
-                      key={p.id}
-                      sx={{
-                        width: "100%",
-                        flexWrap: "nowrap",
-                      }}
-                    >
-                      <Image
-                        width={"300px"}
-                        height="200px"
-                        src={
-                          p?.img?.split("public/").pop() ??
-                          "https://i.imgur.com/bWMapTD.jpg"
-                        }
-                        alt={p.title}
-                      />
-                      <Stack
-                        sx={{
-                          gap: "10px",
-                        }}
-                      >
-                        <Group>
-                          <Title order={3}>{p.title}</Title>
-                          {render ? (
-                            <Group>
-                              <Box
-                                onClick={() => {
-                                  setCurrentPost(p);
-                                  setEditModalOpen(true);
-                                }}
-                                sx={{
-                                  cursor: "pointer",
-                                }}
-                              >
-                                <IconPencil size={18} />
-                              </Box>
 
-                              <Box
-                                onClick={() => handleDeletePost(p.id)}
-                                sx={{
-                                  cursor: "pointer",
-                                }}
-                              >
-                                <IconTrash size={18} />
-                              </Box>
-                            </Group>
-                          ) : null}
-                        </Group>
+            {deleteModalOpen && currentPost ? (
+              <DeletePost
+                deleteModalOpen={deleteModalOpen}
+                setDeleteModalOpen={setDeleteModalOpen}
+                postId={currentPost.id}
+                refreshData={refreshData}
+              />
+            ) : null}
 
-                        <Text
-                          sx={{
-                            maxWidth: "800px",
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          }}
-                        >
-                          {p.body}
-                        </Text>
-                        <Text>{dayjs(p.created_at).format("DD/MM/YYYY")}</Text>
-
-                        <Anchor href={`/news/${p.id}`}>Read More...</Anchor>
-                      </Stack>
-                    </Group>
-                  ))
-              ) : (
-                <>
-                  <Center
+            {posts.length > 0 ? (
+              posts
+                .filter(
+                  (_, index) => index >= postIndex[0] && index < postIndex[1]
+                )
+                .map((p) => (
+                  <Group
+                    key={p.id}
                     sx={{
-                      height: "100%",
+                      width: "100%",
+                      flexWrap: "wrap",
+
+                      [`@media (min-width: ${theme.breakpoints.sm}px)`]: {
+                        flexWrap: "nowrap",
+                      },
                     }}
                   >
-                    <Title>There are no posts created yet...</Title>
-                  </Center>
-                </>
-              )}
-            </Group>
+                    <Image
+                      width={"300px"}
+                      height="200px"
+                      src={
+                        p?.img?.split("public/").pop() ??
+                        "https://i.imgur.com/bWMapTD.jpg"
+                      }
+                      alt={p.title}
+                    />
+                    <Stack
+                      sx={{
+                        gap: "10px",
+                        textOverflow: "ellipsis",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <Group sx={{}}>
+                        <Title order={3}>{p.title}</Title>
+                        {render ? (
+                          <Group>
+                            <Box
+                              onClick={() => {
+                                if (deleteModalOpen) return;
+                                setCurrentPost(p);
+                                setEditModalOpen(true);
+                              }}
+                              sx={{
+                                cursor: "pointer",
+                              }}
+                            >
+                              <IconPencil size={18} />
+                            </Box>
+
+                            <Box
+                              onClick={() => {
+                                if (editModalOpen) return;
+                                setCurrentPost(p);
+                                setDeleteModalOpen(true);
+                              }}
+                              sx={{
+                                cursor: "pointer",
+                              }}
+                            >
+                              <IconTrash size={18} />
+                            </Box>
+                          </Group>
+                        ) : null}
+                      </Group>
+
+                      <Text
+                        sx={{
+                          maxWidth: "800px",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {p.body}
+                      </Text>
+                      <Text>{dayjs(p.created_at).format("DD/MM/YYYY")}</Text>
+
+                      <Anchor
+                        sx={{
+                          fontStyle: "italic",
+                        }}
+                        href={`/news/${p.id}`}
+                      >
+                        Read More...
+                      </Anchor>
+                    </Stack>
+                  </Group>
+                ))
+            ) : (
+              <>
+                <Center
+                  sx={{
+                    height: "100%",
+                  }}
+                >
+                  <Title>There are no posts created yet...</Title>
+                </Center>
+              </>
+            )}
 
             <Pagination
               color="dark.6"

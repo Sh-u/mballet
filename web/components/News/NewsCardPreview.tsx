@@ -65,7 +65,15 @@ const NewsCardPreview = ({
           <Text>{dayjs(date).format("DD/MM/YYYY")}</Text>
         </Group>
 
-        <Title>{title}</Title>
+        <Title
+          sx={{
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+          }}
+        >
+          {title}
+        </Title>
         <Text
           sx={{
             overflow: "hidden",
@@ -83,10 +91,10 @@ const NewsCardPreview = ({
               "&:hover": {
                 color: theme.colors.main[3],
               },
-              fontWeight: "bold",
+              fontStyle: "italic",
             }}
           >
-            Learn more...
+            Read more...
           </Anchor>
         </Link>
       </Stack>

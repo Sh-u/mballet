@@ -1,7 +1,7 @@
-import { Button, ButtonProps, Group } from "@mantine/core";
+import { Button, ButtonProps } from "@mantine/core";
 import {
-  IconBrandGoogle as GoogleIcon,
   IconBrandFacebook as FacebookIcon,
+  IconBrandGoogle as GoogleIcon,
 } from "@tabler/icons";
 
 type GoogleButtonProps = {
@@ -18,15 +18,15 @@ export const GoogleButton = ({
     <Button
       onClick={async () => clickHandler()}
       leftIcon={<GoogleIcon />}
-      sx={{
-        backgroundColor: red,
-        color: "white",
+      // sx={{
+      //   backgroundColor: red,
+      //   color: "white",
 
-        "&:hover": {
-          backgroundColor: "white",
-          color: "black",
-        },
-      }}
+      //   "&:hover": {
+      //     backgroundColor: "white",
+      //     color: "black",
+      //   },
+      // }}
       {...props}
     />
   );

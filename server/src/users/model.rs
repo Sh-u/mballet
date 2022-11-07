@@ -12,6 +12,12 @@ use validator::{validate_email, validate_range, Validate};
 use super::auth_utils::{hash_password, set_current_user, verify};
 
 #[derive(Deserialize, Serialize)]
+pub enum AuthType {
+    GOOGLE,
+    STANDARD,
+}
+
+#[derive(Deserialize, Serialize)]
 pub struct Credentials {
     pub email: String,
     pub password: String,
@@ -83,7 +89,7 @@ pub struct Confirmation {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct UsersApiBody {
+pub struct CreateUserInput {
     pub username: String,
     pub email: String,
     pub password: String,
@@ -148,7 +154,7 @@ impl Confirmation {
 }
 
 impl User {
-    pub fn create(input: UsersApiBody) -> Result<User, CustomError> {
+    pub fn create(input: CreateUserInput) -> Result<User, CustomError> {
         let conn = connection()?;
 
         if !validate_range(input.username.len(), Some(4), Some(25)) {
@@ -304,7 +310,7 @@ impl User {
         Ok(user)
     }
 
-    pub fn update(id: i32, input: UsersApiBody) -> Result<User, CustomError> {
+    pub fn update(id: i32, input: CreateUserInput) -> Result<User, CustomError> {
         let conn = connection()?;
 
         let user = diesel::update(users::table.find(id))
