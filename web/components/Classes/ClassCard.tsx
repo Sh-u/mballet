@@ -14,17 +14,19 @@ const ClassCard = ({ theme, price, title, body, href }: ClassCardProps) => {
   return (
     <>
       <Stack
-        p="lg"
         justify="center"
         align="center"
         sx={{
           backgroundColor: theme.colors.gray[2],
           width: "80%",
+          padding: "40px 20px 40px 20px",
           [`@media (min-width: ${theme.breakpoints.sm}px)`]: {
+            padding: "20px",
             width: "32%",
+            height: "350px",
           },
 
-          height: "350px",
+          height: "max-content",
         }}
       >
         <Title>{title}</Title>

@@ -32,20 +32,26 @@ const CourseCard = ({
         justify={"space-evenly"}
         sx={{
           backgroundColor: theme.colors.gray[2],
-          padding: "30px 10px",
+          padding: "40px 20px",
           width: "80%",
-          height: "465px",
+          height: "max-content",
           gap: "12px",
           [`@media (min-width: ${theme.breakpoints.sm}px)`]: {
             height: onTop ? "525px" : "465px",
             width: "33%",
-            padding: "30px 30px",
+            padding: "20px",
             boxShadow: onTop ? "0px 10px 45px -5px rgb(0 0 0 / 14%);" : "unset",
             transform: onTop ? "translateY(-10px)" : "unset",
           },
         }}
       >
-        <Title>{title}</Title>
+        <Title
+          sx={{
+            textAlign: "center",
+          }}
+        >
+          {title}
+        </Title>
         <Group
           sx={{
             gap: 2,

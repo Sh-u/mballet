@@ -212,10 +212,13 @@ const BookingsPage = () => {
       <Navbar theme={theme} />
       <MainContentWrapper theme={theme}>
         <Stack
+          p={10}
           align={"center"}
           sx={{
             maxWidth: "70rem",
-            padding: "20px",
+            [`@media (min-width: ${theme.breakpoints.lg}px)`]: {
+              padding: "0px",
+            },
           }}
           mx={"auto"}
         >
@@ -223,6 +226,7 @@ const BookingsPage = () => {
             mt="2rem"
             sx={{
               gridTemplateRows: "auto 1fr auto auto",
+              width: "100%",
               [`@media (min-width: ${theme.breakpoints.lg}px)`]: {
                 gridTemplateColumns: "700px 320px",
                 gridTemplateAreas:

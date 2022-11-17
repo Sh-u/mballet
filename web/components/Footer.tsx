@@ -46,7 +46,7 @@ const Footer = ({ theme }: FooterProps) => {
               alignItems: "start",
               flexWrap: "wrap",
 
-              [`@media (min-width: ${theme.breakpoints.xs}px)`]: {
+              [`@media (min-width: ${theme.breakpoints.sm}px)`]: {
                 flexWrap: "nowrap",
               },
             }}
@@ -57,7 +57,7 @@ const Footer = ({ theme }: FooterProps) => {
                 alignItems: "center",
                 width: "80%",
                 textAlign: "center",
-                [`@media (min-width: ${theme.breakpoints.xs}px)`]: {
+                [`@media (min-width: ${theme.breakpoints.sm}px)`]: {
                   width: "33%",
                   alignItems: "start",
                   textAlign: "unset",
@@ -79,7 +79,7 @@ const Footer = ({ theme }: FooterProps) => {
                 justifyContent: "center",
                 alignItems: "center",
                 width: "80%",
-                [`@media (min-width: ${theme.breakpoints.xs}px)`]: {
+                [`@media (min-width: ${theme.breakpoints.sm}px)`]: {
                   width: "33%",
                   alignItems: "start",
                 },
@@ -114,7 +114,7 @@ const Footer = ({ theme }: FooterProps) => {
 
                 alignItems: "center",
                 width: "80%",
-                [`@media (min-width: ${theme.breakpoints.xs}px)`]: {
+                [`@media (min-width: ${theme.breakpoints.sm}px)`]: {
                   width: "33%",
                   alignItems: "start",
                 },
@@ -125,7 +125,7 @@ const Footer = ({ theme }: FooterProps) => {
               <Text
                 sx={{
                   textAlign: "center",
-                  [`@media (min-width: ${theme.breakpoints.xs}px)`]: {
+                  [`@media (min-width: ${theme.breakpoints.sm}px)`]: {
                     textAlign: "unset",
                   },
                 }}

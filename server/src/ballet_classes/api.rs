@@ -128,14 +128,14 @@ impl BalletClass {
     }
 
     pub fn get_all_booked_by_user(user_id: i32) -> Result<Vec<BalletClass>, CustomError> {
-        let bookings = Booking::get_all_by_user_id(user_id)?;
-        dbg!(bookings);
+        // let bookings = Booking::get_all_by_user_id(user_id)?;
+
         let conn = connection()?;
 
         let classes = ballet_classes::table
-            .left_join(bookings::table)
+            .left_join(bookings::table.on(bookings::ballet_class.eq(ballet_classes::id)))
             .select(ballet_classes::all_columns)
-            .filter(bookings::ballet_class.eq(ballet_classes::id))
+            .filter(bookings::booked_by.eq(user_id))
             .order(ballet_classes::class_date)
             .load::<BalletClass>(&conn)?;
         Ok(classes)

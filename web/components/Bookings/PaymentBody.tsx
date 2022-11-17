@@ -11,7 +11,7 @@ interface PaymentBodyProps {
 
 const PaymentBody = ({ class_id, handleApprovedPayment }: PaymentBodyProps) => {
   return (
-    <Stack justify="start" sx={{}}>
+    <Stack>
       <PayPalScriptProvider options={initialOptions}>
         <PayPalButtons
           style={{ layout: "vertical", color: "black", tagline: false }}

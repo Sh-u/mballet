@@ -47,6 +47,7 @@ const BookingsCalendar = ({
         fullWidth
         size="xl"
         sx={{
+          placeSelf: "center",
           maxWidth: "700px",
         }}
         dayStyle={(date: Date) =>

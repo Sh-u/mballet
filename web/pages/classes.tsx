@@ -20,9 +20,13 @@ const ClassesPage = () => {
         <Stack
           justify={"center"}
           align="center"
+          p={10}
           sx={{
             maxWidth: "70rem",
             margin: "auto",
+            [`@media (min-width: ${theme.breakpoints.lg}px)`]: {
+              padding: 0,
+            },
           }}
         >
           <Stack
@@ -73,6 +77,7 @@ const ClassesPage = () => {
               gap: "16px",
               [`@media (min-width: ${theme.breakpoints.sm}px)`]: {
                 flexWrap: "nowrap",
+                justifyContent: "space-between",
               },
             }}
           >
