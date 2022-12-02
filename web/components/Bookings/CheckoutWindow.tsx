@@ -3,6 +3,7 @@ import { time } from "console";
 
 import React from "react";
 import { RenderState, TimeButton } from "../../pages/bookings";
+import mapToBrowserName from "../../utils/mapToBrowserName";
 
 interface CheckoutWindowProps {
   theme: MantineTheme;
@@ -35,7 +36,7 @@ const CheckoutWindow = ({
       })}
     >
       <Text size={"xl"} weight="bold">
-        {class_query}
+        {mapToBrowserName(class_query as string)}
       </Text>
       <Text size={"md"}>1hr | {classPrice} £</Text>
       <Divider />

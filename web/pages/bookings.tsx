@@ -6,6 +6,7 @@ import {
   Stack,
   useMantineTheme,
 } from "@mantine/core";
+import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 import dayjs from "dayjs";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -24,6 +25,7 @@ import useAlert, { UseAlertProps } from "../hooks/useAlert";
 
 import MapToDbName from "../utils/mapToDbName";
 import me from "../utils/me";
+import { initialOptions } from "../utils/paypalInitialOptions";
 import getAllAvailableClassesByName from "../utils/requests/bookings/getAllAvailableClassesByName";
 import { getClassesPrice } from "../utils/requests/bookings/getClassesPrice";
 
@@ -49,6 +51,7 @@ enum AlertState {
 enum ClassNames {
   OneOnOne = "one-on-one",
   BeginnersOnline = "beginners-online",
+  IntermediateOnline = "intermediate-online",
 }
 
 export enum RenderState {
@@ -77,9 +80,11 @@ const BookingsPage = () => {
   useEffect(() => {
     if (
       router.isReady &&
-      ![ClassNames.BeginnersOnline, ClassNames.OneOnOne].includes(
-        class_query as ClassNames
-      )
+      ![
+        ClassNames.BeginnersOnline,
+        ClassNames.OneOnOne,
+        ClassNames.IntermediateOnline,
+      ].includes(class_query as ClassNames)
     ) {
       router.push("/");
     }
@@ -180,7 +185,7 @@ const BookingsPage = () => {
             theme={theme}
             value={value}
             setValue={setValue}
-            bookings={classes}
+            balletClasses={classes}
           />
         );
       case RenderState.payment:
@@ -209,156 +214,160 @@ const BookingsPage = () => {
 
   return (
     <>
-      <Navbar theme={theme} />
-      <MainContentWrapper theme={theme}>
-        <Stack
-          p={10}
-          align={"center"}
-          sx={{
-            maxWidth: "70rem",
-            [`@media (min-width: ${theme.breakpoints.lg}px)`]: {
-              padding: "0px",
-            },
-          }}
-          mx={"auto"}
-        >
-          <SimpleGrid
-            mt="2rem"
+      <PayPalScriptProvider options={initialOptions}>
+        <Navbar theme={theme} />
+        <MainContentWrapper theme={theme}>
+          <Stack
+            p={10}
+            align={"center"}
             sx={{
-              gridTemplateRows: "auto 1fr auto auto",
-              width: "100%",
+              maxWidth: "70rem",
               [`@media (min-width: ${theme.breakpoints.lg}px)`]: {
-                gridTemplateColumns: "700px 320px",
-                gridTemplateAreas:
-                  '"info info" "calendar checkout" "hour hour"',
-                gridTemplateRows: "auto 1fr auto",
-                gridAutoFlow: "column",
+                padding: "0px",
               },
             }}
+            mx={"auto"}
           >
-            {checkRenderState()}
-
-            <Stack
+            <SimpleGrid
+              mt="2rem"
               sx={{
-                position: "relative",
-                width: "280px",
-                order: 1,
-
-                marginLeft: 0,
-                justifySelf: "center",
+                gridTemplateRows: "auto 1fr auto auto",
+                width: "100%",
                 [`@media (min-width: ${theme.breakpoints.lg}px)`]: {
-                  marginLeft: "30px",
-                  gridArea: "checkout",
-                  justifySelf: "unset",
+                  gridTemplateColumns: "700px 320px",
+                  gridTemplateAreas:
+                    '"info info" "calendar checkout" "hour hour"',
+                  gridTemplateRows: "auto 1fr auto",
+                  gridAutoFlow: "column",
                 },
               }}
             >
-              <CheckoutWindow
-                classPrice={classPrice}
-                class_query={class_query}
-                handleProceedPayment={handleProceedPayment}
-                renderState={renderState}
-                theme={theme}
-                time={time}
-                value={value}
-              />
+              {checkRenderState()}
 
-              <CreateClass
-                handleAddBooking={(booking) => {
-                  console.log("create booking: ", booking);
-                  if (!classes) {
-                    return;
-                  }
-
-                  mutate(
-                    fetchUrl,
-                    async () => {
-                      const bookings2 = [...classes, booking].sort((a, b) => {
-                        if (dayjs(a.class_date).isBefore(b.class_date))
-                          return -1;
-                        else if (dayjs(a.class_date).isAfter(b.class_date))
-                          return 1;
-                        else return 0;
-                      });
-
-                      return bookings2;
-                    },
-                    { revalidate: false }
-                  );
-                }}
-                handleSetAlertInfo={handleSetAlertInfo}
-              />
-              {myAlert}
-            </Stack>
-
-            {renderState === RenderState.booking ? (
-              <SimpleGrid
+              <Stack
                 sx={{
-                  gridTemplateColumns: "unset",
-                  margin: "0",
-                  padding: "0",
-                  gap: "16px",
-                  gridAutoFlow: "column",
-                  gridTemplateRows: "repeat(3, auto)",
-                  justifyContent: "start",
+                  position: "relative",
+                  width: "280px",
+                  order: 1,
+
+                  marginLeft: 0,
+                  justifySelf: "center",
+                  [`@media (min-width: ${theme.breakpoints.lg}px)`]: {
+                    marginLeft: "30px",
+                    gridArea: "checkout",
+                    justifySelf: "unset",
+                  },
                 }}
               >
-                {classes?.map((balletClass, index) => {
-                  const bookedAt = dayjs(
-                    new Date(Date.parse(balletClass.class_date))
-                  ).add(1, "hour");
-                  if (
-                    bookedAt.format("YYYY-MM-DD") !==
-                    dayjs(value).format("YYYY-MM-DD")
-                  ) {
-                    return null;
-                  }
-                  let minutes = bookedAt.format("mm");
-                  let newTime = `${bookedAt.hour()}:${minutes}`;
+                <CheckoutWindow
+                  classPrice={classPrice}
+                  class_query={class_query}
+                  handleProceedPayment={handleProceedPayment}
+                  renderState={renderState}
+                  theme={theme}
+                  time={time}
+                  value={value}
+                />
 
-                  // console.log('bookedat', booking.booked_at)
-                  return (
-                    <Box
-                      onClick={() => {
-                        setTime({
-                          time: newTime,
-                          index: index,
+                <CreateClass
+                  handleAddBooking={(booking) => {
+                    console.log("create booking: ", booking);
+                    if (!classes) {
+                      return;
+                    }
+
+                    mutate(
+                      fetchUrl,
+                      async () => {
+                        const bookings2 = [...classes, booking].sort((a, b) => {
+                          if (dayjs(a.class_date).isBefore(b.class_date))
+                            return -1;
+                          else if (dayjs(a.class_date).isAfter(b.class_date))
+                            return 1;
+                          else return 0;
                         });
-                      }}
-                      key={index}
-                      sx={(theme) => ({
-                        width: "100px",
-                        border: `1px solid ${
-                          theme.colorScheme === "dark"
-                            ? theme.colors.dark[4]
-                            : theme.colors.gray[2]
-                        }`,
-                        padding: theme.spacing.xs,
-                        backgroundColor:
-                          time?.index === index
-                            ? theme.colors.dark[4]
-                            : "-moz-initial",
-                        color: time?.index === index ? "white" : "-moz-initial",
-                        cursor: "pointer",
-                        "&:hover": {
-                          backgroundColor: theme.colors.dark[4],
-                          color: "white",
-                        },
-                        [`@media (min-width: ${theme.breakpoints.xs}px)`]: {
-                          width: "150px",
-                        },
-                      })}
-                    >
-                      {newTime}
-                    </Box>
-                  );
-                })}
-              </SimpleGrid>
-            ) : null}
-          </SimpleGrid>
-        </Stack>
-      </MainContentWrapper>
-      <Footer theme={theme} />
+
+                        return bookings2;
+                      },
+                      { revalidate: false }
+                    );
+                  }}
+                  handleSetAlertInfo={handleSetAlertInfo}
+                />
+                {myAlert}
+              </Stack>
+
+              {renderState === RenderState.booking ? (
+                <SimpleGrid
+                  sx={{
+                    gridTemplateColumns: "unset",
+                    margin: "0",
+                    padding: "0",
+                    gap: "16px",
+                    gridAutoFlow: "column",
+                    gridTemplateRows: "repeat(3, auto)",
+                    justifyContent: "start",
+                  }}
+                >
+                  {classes?.map((balletClass, index) => {
+                    const bookedAt = dayjs(
+                      new Date(Date.parse(balletClass.class_date))
+                    ).add(1, "hour");
+
+                    if (
+                      bookedAt.format("YYYY-MM-DD") !==
+                      dayjs(value).format("YYYY-MM-DD")
+                    ) {
+                      return null;
+                    }
+                    let minutes = bookedAt.format("mm");
+                    let newTime = `${bookedAt.hour()}:${minutes}`;
+
+                    // console.log('bookedat', booking.booked_at)
+                    return (
+                      <Box
+                        onClick={() => {
+                          setTime({
+                            time: newTime,
+                            index: index,
+                          });
+                        }}
+                        key={index}
+                        sx={(theme) => ({
+                          width: "100px",
+                          border: `1px solid ${
+                            theme.colorScheme === "dark"
+                              ? theme.colors.dark[4]
+                              : theme.colors.gray[2]
+                          }`,
+                          padding: theme.spacing.xs,
+                          backgroundColor:
+                            time?.index === index
+                              ? theme.colors.dark[4]
+                              : "-moz-initial",
+                          color:
+                            time?.index === index ? "white" : "-moz-initial",
+                          cursor: "pointer",
+                          "&:hover": {
+                            backgroundColor: theme.colors.dark[4],
+                            color: "white",
+                          },
+                          [`@media (min-width: ${theme.breakpoints.xs}px)`]: {
+                            width: "150px",
+                          },
+                        })}
+                      >
+                        {newTime}
+                      </Box>
+                    );
+                  })}
+                </SimpleGrid>
+              ) : null}
+            </SimpleGrid>
+          </Stack>
+        </MainContentWrapper>
+        <Footer theme={theme} />
+      </PayPalScriptProvider>
     </>
   );
 };

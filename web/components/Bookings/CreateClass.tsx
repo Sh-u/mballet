@@ -4,10 +4,10 @@ import dayjs from "dayjs";
 import "dayjs/locale/en-gb";
 import { useEffect, useRef, useState } from "react";
 import { AlertState } from "../../hooks/useAlert";
-import createClass from "../../utils/requests/bookings/createClass";
+import { BalletClass } from "../../pages/bookings";
 import MapToDbName from "../../utils/mapToDbName";
 import me from "../../utils/me";
-import { BalletClass } from "../../pages/bookings";
+import createClass from "../../utils/requests/bookings/createClass";
 
 interface CreateClassProps {
   handleSetAlertInfo: (type: AlertState, message: string) => void;
@@ -77,6 +77,8 @@ const CreateClass = ({
 
     let balletClass: BalletClass = await response.json();
 
+    console.log("adding class: ", balletClass);
+
     handleSetAlertInfo(AlertState.success, "Created a booking successfuly");
     handleAddBooking(balletClass);
   };
@@ -106,8 +108,8 @@ const CreateClass = ({
             "One On One",
             "Beginners (Online)",
             "Intermediate (Online)",
-            "Private Online",
-            "Course Beginners (Level One)",
+            "Course Beginners Level One (Online)",
+            "Course Beginners Level One Seniors (Online)",
           ]}
           placeholder="Pick a lesson type"
           label="Lesson Type"

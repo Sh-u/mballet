@@ -10,14 +10,14 @@ interface CalendarProps {
   theme: MantineTheme;
   value: any;
   setValue: Dispatch<any>;
-  bookings: BalletClass[];
+  balletClasses: BalletClass[];
 }
 
 const BookingsCalendar = ({
   theme,
   value,
   setValue,
-  bookings,
+  balletClasses,
 }: CalendarProps) => {
   return (
     <>
@@ -49,6 +49,9 @@ const BookingsCalendar = ({
         sx={{
           placeSelf: "center",
           maxWidth: "700px",
+          [`@media (min-width: ${theme.breakpoints.xs}px)`]: {
+            maxWidth: "100%",
+          },
         }}
         dayStyle={(date: Date) =>
           dayjs(date).format("DD/MM/YYYY") === dayjs(value).format("DD/MM/YYYY")
@@ -58,10 +61,11 @@ const BookingsCalendar = ({
             : {}
         }
         excludeDate={(date) => {
-          return !bookings?.some(
-            (booking) =>
-              dayjs(booking.class_date).format("YYYY-MM-DD") ===
-              dayjs(date).format("YYYY-MM-DD")
+          return !balletClasses?.some(
+            (balletClass) =>
+              dayjs(balletClass.class_date)
+                .add(1, "hour")
+                .format("YYYY-MM-DD") === dayjs(date).format("YYYY-MM-DD")
           );
         }}
         styles={(theme) => ({
@@ -78,7 +82,7 @@ const BookingsCalendar = ({
               height: 70,
             },
             borderRadius: 0,
-            height: 50,
+            height: 60,
             fontSize: theme.fontSizes.lg,
           },
           weekday: {

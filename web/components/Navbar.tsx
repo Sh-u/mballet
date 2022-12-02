@@ -178,8 +178,7 @@ const Navbar = ({ theme }: NavbarProps) => {
 
         <Menu
           opened={menuOpen}
-          onChange={setMenuOpen}
-          zIndex={1}
+          zIndex={999}
           width={"100%"}
           styles={{}}
           closeOnItemClick={false}
@@ -187,6 +186,8 @@ const Navbar = ({ theme }: NavbarProps) => {
           <Menu.Target>
             <Box
               sx={{
+                width: "40px",
+                justifySelf: "end",
                 cursor: "pointer",
                 display: "flex",
                 justifyContent: "end",
@@ -197,13 +198,18 @@ const Navbar = ({ theme }: NavbarProps) => {
                 },
               }}
             >
-              {menuOpen ? <IconX size={40} /> : <IconMenu2 size={40} />}
+              {menuOpen ? (
+                <IconX onClick={() => setMenuOpen(!menuOpen)} size={40} />
+              ) : (
+                <IconMenu2 onClick={() => setMenuOpen(!menuOpen)} size={40} />
+              )}
             </Box>
           </Menu.Target>
 
           <Menu.Dropdown
             sx={{
               padding: 0,
+
               backgroundColor: theme.colors.dark[6],
               fontWeight: "bold",
             }}

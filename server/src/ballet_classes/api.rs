@@ -1,3 +1,5 @@
+use std::{borrow::Borrow, ops::RangeBounds};
+
 use super::model::{BalletClass, ClassName, ClassType, CourseName};
 use crate::{
     bookings::model::Booking,
@@ -7,14 +9,15 @@ use crate::{
     users::model::User,
 };
 use chrono::Utc;
-use diesel::{prelude::*, sql_query, BelongingToDsl};
+use diesel::{dsl::count, prelude::*, sql_query, BelongingToDsl};
 use uuid::Uuid;
 
 impl ClassType {
     pub fn from_class_name(class_name: &ClassName) -> Self {
         match class_name {
-            ClassName::Beginners_Online => ClassType::GROUP,
             ClassName::One_On_One => ClassType::SINGLE,
+            ClassName::Beginners_Online => ClassType::GROUP,
+            ClassName::Intermediate_Online => ClassType::GROUP,
             ClassName::Course_Beginners_Level_One => ClassType::GROUP,
             ClassName::Course_Beginners_Level_One_Seniors => ClassType::GROUP,
         }
@@ -26,6 +29,7 @@ impl ClassName {
         match input {
             "One_On_One" => Ok(ClassName::One_On_One),
             "Beginners_Online" => Ok(ClassName::Beginners_Online),
+            "Intermediate_Online" => Ok(ClassName::Intermediate_Online),
             "Course_Beginners_Level_One" => Ok(ClassName::Course_Beginners_Level_One),
             "Course_Beginners_Level_One_Seniors" => {
                 Ok(ClassName::Course_Beginners_Level_One_Seniors)
@@ -38,6 +42,7 @@ impl ClassName {
         match self {
             ClassName::One_On_One => "45.00".to_owned(),
             ClassName::Beginners_Online => "15.00".to_owned(),
+            ClassName::Intermediate_Online => "20.00".to_owned(),
             ClassName::Course_Beginners_Level_One => "12.00".to_owned(),
             ClassName::Course_Beginners_Level_One_Seniors => "12.00".to_owned(),
         }
@@ -47,6 +52,7 @@ impl ClassName {
         match self {
             ClassName::One_On_One => "One_On_One".to_owned(),
             ClassName::Beginners_Online => "Beginners_Online".to_owned(),
+            ClassName::Intermediate_Online => "Intermediate_Online".to_owned(),
             ClassName::Course_Beginners_Level_One => "Course_Beginners_Level_One".to_owned(),
             ClassName::Course_Beginners_Level_One_Seniors => {
                 "Course_Beginners_level_One_Seniors".to_owned()
@@ -59,6 +65,9 @@ impl ClassName {
             ClassName::One_On_One => "Mballet one on one lesson.".to_owned(),
             ClassName::Beginners_Online => {
                 "Mballet online lesson dedicated for begginers.".to_owned()
+            }
+            ClassName::Intermediate_Online => {
+                "Mballet online lesson dedicated for intermediate students.".to_owned()
             }
             ClassName::Course_Beginners_Level_One => {
                 "Mballet course lesson for beginners (level one)".to_owned()
@@ -163,10 +172,12 @@ impl BalletClass {
 
         Ok(ballet_classes::table.load::<BalletClass>(&conn)?)
     }
-    pub fn get_all_available_by_name(class_name: &str) -> Result<Vec<BalletClass>, CustomError> {
+    pub fn get_all_available_by_name(
+        class_name_str: &str,
+    ) -> Result<Vec<BalletClass>, CustomError> {
         let conn = connection()?;
 
-        let class_name = ClassName::from_str(class_name)?;
+        let class_name = ClassName::from_str(class_name_str)?;
 
         match class_name {
             ClassName::Beginners_Online => Ok(sql_query(
@@ -187,6 +198,31 @@ impl BalletClass {
             AND ballet_classes.class_name='one_on_one'",
             )
             .load::<BalletClass>(&conn)?),
+            ClassName::Intermediate_Online => {
+                // let classes = ballet_classes::table.load::<BalletClass>(&conn)?;
+
+                let classes: Vec<BalletClass> = ballet_classes::table
+                    .left_join(bookings::table.on(bookings::id.eq(ballet_classes::id)))
+                    .select(ballet_classes::all_columns)
+                    .filter(ballet_classes::class_name.eq(class_name))
+                    .order(ballet_classes::class_date)
+                    .get_results(&conn)?;
+
+                let mut id_to_filter = Vec::new();
+
+                for class in classes.iter() {
+                    let bookings: Vec<Booking> = Booking::belonging_to(class).load(&conn)?;
+
+                    if bookings.len() >= class.slots.unwrap() as usize {
+                        id_to_filter.push(class.id);
+                    }
+                }
+
+                Ok(classes
+                    .into_iter()
+                    .filter(|class| !id_to_filter.iter().any(|id| id == &class.id))
+                    .collect::<Vec<BalletClass>>())
+            }
             ClassName::Course_Beginners_Level_One => {
                 // let classes = ballet_classes::table.load::<BalletClass>(&conn)?;
 
@@ -214,6 +250,18 @@ impl BalletClass {
                     left join bookings on ballet_classes.id=bookings.ballet_class 
                     GROUP BY ballet_classes.id having COUNT(bookings.id) < ballet_classes.slots 
                     AND ballet_classes.class_name='course_beginners_level_one'
+                    AND ballet_classes.class_date >= now() 
+                    order by ballet_classes.class_date",
+                )
+                .load::<BalletClass>(&conn)?);
+            }
+            ClassName::Course_Beginners_Level_One_Seniors => {
+                return Ok(sql_query(
+                    "select ballet_classes.* 
+                    from ballet_classes 
+                    left join bookings on ballet_classes.id=bookings.ballet_class 
+                    GROUP BY ballet_classes.id having COUNT(bookings.id) < ballet_classes.slots 
+                    AND ballet_classes.class_name='course_beginners_level_one_seniors'
                     AND ballet_classes.class_date >= now() 
                     order by ballet_classes.class_date",
                 )

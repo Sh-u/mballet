@@ -26,6 +26,7 @@ pub enum ClassType {
 pub enum ClassName {
     One_On_One,
     Beginners_Online,
+    Intermediate_Online,
     Course_Beginners_Level_One,
     Course_Beginners_Level_One_Seniors,
 }
