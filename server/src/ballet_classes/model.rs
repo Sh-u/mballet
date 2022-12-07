@@ -6,6 +6,7 @@ use uuid::Uuid;
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq)]
 pub enum CourseName {
     CourseBeginnersLevelOne,
+    CourseIntermediateLevelOne,
     CourseBeginnersLevelOneSeniors,
 }
 
@@ -28,6 +29,7 @@ pub enum ClassName {
     Beginners_Online,
     Intermediate_Online,
     Course_Beginners_Level_One,
+    Course_Intermediate_Level_One,
     Course_Beginners_Level_One_Seniors,
 }
 #[derive(

@@ -73,7 +73,7 @@ const BookingsCalendar = ({
             border: `1px solid ${
               theme.colorScheme === "dark"
                 ? theme.colors.dark[4]
-                : theme.colors.gray[4]
+                : theme.colors.gray[5]
             }`,
           },
           calendarBase: {},

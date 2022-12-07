@@ -25,6 +25,7 @@ const CourseCard = ({
   soldOut,
 }: CourseCardProps) => {
   const router = useRouter();
+
   return (
     <>
       <Stack

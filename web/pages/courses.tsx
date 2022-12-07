@@ -4,9 +4,9 @@ import {
   Loader,
   SimpleGrid,
   Stack,
+  Text,
   Title,
   useMantineTheme,
-  Text,
 } from "@mantine/core";
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 import { useRouter } from "next/router";
@@ -24,11 +24,11 @@ import getAllAvailableClassesByName, {
   SwrError,
 } from "../utils/requests/bookings/getAllAvailableClassesByName";
 import { getClassesPrice } from "../utils/requests/bookings/getClassesPrice";
-import { getCoursesPrice } from "../utils/requests/bookings/getCoursesPrice";
 import onApprove from "../utils/requests/bookings/onApprove";
 import { BalletClass, RenderState } from "./bookings";
 export enum CourseNames {
   BeginnersLevelOne = "beginners-level-one",
+  IntermediateLevelOne = "intermediate-level-one",
   BeginnersLevelOneSeniors = "beginners-level-one-seniors",
 }
 
@@ -36,6 +36,8 @@ export const getDbCourseName = (course: CourseNames): string => {
   switch (course) {
     case CourseNames.BeginnersLevelOne:
       return "Course_Beginners_Level_One";
+    case CourseNames.IntermediateLevelOne:
+      return "Course_Intermediate_Level_One";
     case CourseNames.BeginnersLevelOneSeniors:
       return "Course_Beginners_Level_One_Seniors";
   }
@@ -45,6 +47,8 @@ const getClientCourseName = (course: CourseNames): string => {
   switch (course) {
     case CourseNames.BeginnersLevelOne:
       return "Beginners Course (Level One)";
+    case CourseNames.IntermediateLevelOne:
+      return "Intermediate Course (Level One)";
     case CourseNames.BeginnersLevelOneSeniors:
       return "Ballet Course For Beginners (Level One) - Seniors";
   }

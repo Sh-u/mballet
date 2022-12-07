@@ -1,15 +1,24 @@
 import { Group, Stack, Text, Title, useMantineTheme } from "@mantine/core";
+import { GetServerSideProps } from "next";
 import ClassCard from "../components/Classes/ClassCard";
+import Courses from "../components/Classes/Courses";
 import Footer from "../components/Footer";
-import CourseCard from "../components/Classes/CourseCard";
 import MainContentWrapper from "../components/MainContentWrapper";
 import Navbar from "../components/Navbar";
-import Courses from "../components/Classes/Courses";
-import { useEffect, useState } from "react";
 import checkSoldOutByName from "../utils/requests/bookings/checkSoldOutByName";
 import { CourseNames, getDbCourseName } from "./courses";
 
-const ClassesPage = () => {
+export interface SoldOutResponse {
+  soldOut: boolean;
+}
+
+export interface ClassesProps {
+  beginnersLevelOne: SoldOutResponse;
+  intermediateLevelOne: SoldOutResponse;
+  beginnersLevelOneSeniors: SoldOutResponse;
+}
+
+const ClassesPage = (context: ClassesProps) => {
   const theme = useMantineTheme();
 
   return (
@@ -53,7 +62,7 @@ const ClassesPage = () => {
               },
             }}
           >
-            <Courses theme={theme} />
+            <Courses theme={theme} context={context} />
           </Group>
 
           <Stack
@@ -117,4 +126,34 @@ const ClassesPage = () => {
   );
 };
 
+const checkAvailableCourses = async (name: CourseNames) => {
+  const response = await checkSoldOutByName(getDbCourseName(name));
+
+  if (!response.ok) {
+    return;
+  }
+  const available = await response.json();
+
+  return available;
+};
+
+export const getServerSideProps: GetServerSideProps = async () => {
+  const beginnersLevelOneCourse = await checkAvailableCourses(
+    CourseNames.BeginnersLevelOne
+  ).catch(console.error);
+  const beginnersLevelOneSeniorsCourse = await checkAvailableCourses(
+    CourseNames.BeginnersLevelOneSeniors
+  ).catch(console.error);
+  const intermediateLevelOneCourse = await checkAvailableCourses(
+    CourseNames.IntermediateLevelOne
+  ).catch(console.error);
+
+  return {
+    props: {
+      beginnersLevelOne: beginnersLevelOneCourse,
+      intermediateLevelOne: intermediateLevelOneCourse,
+      beginnersLevelOneSeniors: beginnersLevelOneSeniorsCourse,
+    },
+  };
+};
 export default ClassesPage;

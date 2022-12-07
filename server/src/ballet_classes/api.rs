@@ -1,5 +1,3 @@
-use std::{borrow::Borrow, ops::RangeBounds};
-
 use super::model::{BalletClass, ClassName, ClassType, CourseName};
 use crate::{
     bookings::model::Booking,
@@ -19,6 +17,7 @@ impl ClassType {
             ClassName::Beginners_Online => ClassType::GROUP,
             ClassName::Intermediate_Online => ClassType::GROUP,
             ClassName::Course_Beginners_Level_One => ClassType::GROUP,
+            ClassName::Course_Intermediate_Level_One => ClassType::GROUP,
             ClassName::Course_Beginners_Level_One_Seniors => ClassType::GROUP,
         }
     }
@@ -31,6 +30,7 @@ impl ClassName {
             "Beginners_Online" => Ok(ClassName::Beginners_Online),
             "Intermediate_Online" => Ok(ClassName::Intermediate_Online),
             "Course_Beginners_Level_One" => Ok(ClassName::Course_Beginners_Level_One),
+            "Course_Intermediate_Level_One" => Ok(ClassName::Course_Intermediate_Level_One),
             "Course_Beginners_Level_One_Seniors" => {
                 Ok(ClassName::Course_Beginners_Level_One_Seniors)
             }
@@ -44,6 +44,7 @@ impl ClassName {
             ClassName::Beginners_Online => "15.00".to_owned(),
             ClassName::Intermediate_Online => "20.00".to_owned(),
             ClassName::Course_Beginners_Level_One => "12.00".to_owned(),
+            ClassName::Course_Intermediate_Level_One => "15.00".to_owned(),
             ClassName::Course_Beginners_Level_One_Seniors => "12.00".to_owned(),
         }
     }
@@ -54,6 +55,7 @@ impl ClassName {
             ClassName::Beginners_Online => "Beginners_Online".to_owned(),
             ClassName::Intermediate_Online => "Intermediate_Online".to_owned(),
             ClassName::Course_Beginners_Level_One => "Course_Beginners_Level_One".to_owned(),
+            ClassName::Course_Intermediate_Level_One => "Course_Intermediate_Level_One".to_owned(),
             ClassName::Course_Beginners_Level_One_Seniors => {
                 "Course_Beginners_level_One_Seniors".to_owned()
             }
@@ -71,6 +73,9 @@ impl ClassName {
             }
             ClassName::Course_Beginners_Level_One => {
                 "Mballet course lesson for beginners (level one)".to_owned()
+            }
+            ClassName::Course_Intermediate_Level_One => {
+                "Mballet course lesson for intermediate (level one)".to_owned()
             }
             ClassName::Course_Beginners_Level_One_Seniors => {
                 "Mballet course lesson for beginners (seniors)".to_owned()
@@ -255,6 +260,18 @@ impl BalletClass {
                 )
                 .load::<BalletClass>(&conn)?);
             }
+            ClassName::Course_Intermediate_Level_One => {
+                return Ok(sql_query(
+                    "select ballet_classes.* 
+                    from ballet_classes 
+                    left join bookings on ballet_classes.id=bookings.ballet_class 
+                    GROUP BY ballet_classes.id having COUNT(bookings.id) < ballet_classes.slots 
+                    AND ballet_classes.class_name='course_intermediate_level_one'
+                    AND ballet_classes.class_date >= now() 
+                    order by ballet_classes.class_date",
+                )
+                .load::<BalletClass>(&conn)?);
+            }
             ClassName::Course_Beginners_Level_One_Seniors => {
                 return Ok(sql_query(
                     "select ballet_classes.* 
@@ -339,6 +356,7 @@ impl CourseName {
     pub fn get_price(&self) -> String {
         match self {
             CourseName::CourseBeginnersLevelOne => "85.00".to_owned(),
+            CourseName::CourseIntermediateLevelOne => "105.00".to_owned(),
             CourseName::CourseBeginnersLevelOneSeniors => "85.00".to_owned(),
         }
     }
@@ -346,6 +364,7 @@ impl CourseName {
     pub fn get_classes_quantity(&self) -> String {
         match self {
             CourseName::CourseBeginnersLevelOne => "8".to_owned(),
+            CourseName::CourseIntermediateLevelOne => "8".to_owned(),
             CourseName::CourseBeginnersLevelOneSeniors => "8".to_owned(),
         }
     }
